@@ -1,0 +1,16 @@
+<mujoco model="force_sensor">
+    <compiler angle="radian" />
+    <size njmax="500" nconmax="100" />
+    <asset>
+        <mesh name="Sensor_base" file="Sensor_base.STL" />
+        <mesh name="Sensor_middle" file="Sensor_middle.STL" />
+    </asset>
+    <worldbody>
+        <geom type="mesh" rgba="1 1 1 1" mesh="Sensor_base" />
+        <body name="Sensor_middle" pos="0 0 0">
+            <inertial pos="-4.5754e-06 0.035178 -0.00034553" quat="0.501157 0.498952 0.496494 0.503371" mass="0.083993" diaginertia="3.22103e-05 1.98158e-05 1.86579e-05" />
+            <joint name="Sensor_joint" pos="0 0 0" axis="0 -1 0" />
+            <geom type="mesh" rgba="1 1 1 1" mesh="Sensor_middle" />
+        </body>
+    </worldbody>
+</mujoco>

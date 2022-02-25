@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.5.1-0-g916b5db  Build Version: 1.5.7152.31018
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="force_sensor">
+  <link
+    name="Sensor_base">
+    <inertial>
+      <origin
+        xyz="-1.787E-06 0.020969 -0.00023519"
+        rpy="0 0 0" />
+      <mass
+        value="0.053699" />
+      <inertia
+        ixx="3.0243E-06"
+        ixy="-2.2777E-10"
+        ixz="1.2553E-09"
+        iyy="5.9611E-06"
+        iyz="1.3636E-08"
+        izz="3.6065E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://force_sensor/meshes/Sensor_base.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://force_sensor/meshes/Sensor_base.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="Sensor_middle">
+    <inertial>
+      <origin
+        xyz="-4.5754E-06 0.035178 -0.00034553"
+        rpy="0 0 0" />
+      <mass
+        value="0.083993" />
+      <inertia
+        ixx="1.8658E-05"
+        ixy="3.0742E-09"
+        ixz="-1.0502E-08"
+        iyy="3.221E-05"
+        iyz="5.7917E-08"
+        izz="1.9816E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://force_sensor/meshes/Sensor_middle.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://force_sensor/meshes/Sensor_middle.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Sensor_joint"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="Sensor_base" />
+    <child
+      link="Sensor_middle" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      lower="0"
+      upper="0"
+      effort="0"
+      velocity="0" />
+  </joint>
+</robot>

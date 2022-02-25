@@ -1,0 +1,151 @@
+<mujoco model="CheolFingers">
+    <compiler angle="radian" meshdir="./" />
+    <option timestep = "0.01" gravity="0 0 -0.2"/>
+    <asset>
+        <material name="table_mat" specular="0" shininess="0.5" reflectance="0" rgba="0.93 0.93 0.93 1"></material>
+        
+        <mesh name="base_link_L" file="base_link_L.STL" />
+        <mesh name="Link_1_L" file="Link_1_L.STL" />
+        <mesh name="Link_2_L" file="Link_2_L.STL" />
+        <mesh name="base_link_R" file="base_link_R.STL" />
+        <mesh name="Link_1_R" file="Link_1_R.STL" />
+        <mesh name="Link_2_R" file="Link_2_R.STL" />
+    </asset>
+    <worldbody>
+        <body name="target_body" pos="-0.0327 0 0.047" quat="0.7071 0 -0.7071 0">
+            <site name="target0"  size="0.001 0.02" rgba="1 0 0 1" quat="1 0 0 0" type="cylinder"/>
+        </body>
+    
+	    <light directional="true" ambient="0.2 0.2 0.2" diffuse="0.8 0.8 0.8" specular="0.3 0.3 0.3" castshadow="false" pos="0 0 4" dir="0 0 -1" name="light0"/>
+	    <geom name='ground' size="0.15 0.2 0.00625" pos="0.0 0 -0.0625" type="box" contype="1" conaffinity="0" material="table_mat"/>
+	    <camera name="fixed" pos="0 -0.7 0.7" quat="0.92388 0.382683 0 0" />
+	    <camera name="vil_camera" pos="0 -1.2 1.2" quat="0.92388 0.382683 0 0" />
+
+	    <body name="base_link_L" pos="0.1 -0.0254 0">
+		    <inertial pos="-0.0127 -0.0381 0.023237" quat="0.706892 0.706891 0.0174838 0.0174101" mass="5" diaginertia="3.5163E-05 3.5888E-05 9.7478E-06" />
+		    <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.37255 0.38824 0.43922 1" mesh="base_link_L" />
+		    <body name="Link_1_L" pos="-0.0127 -0.0381 0.043409" quat="0.2705981 0.6532815 -0.2705981  0.6532815">
+		        <inertial pos="-0.0018657 0.041762 -9.687e-08" quat="0.706892 0.706891 0.0174838 0.0174101" mass="0.1" diaginertia="0.000112274 0.00010696 8.04875e-06" />
+		        <joint name="Joint_1_L" pos="0 0 0" axis="1 0 0" limited="true" range="-1.5 1.5" damping="2.0e-2"/>
+		        <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.37255 0.38824 0.43922 1" mesh="Link_1_L" />
+		        <body name="Link_2_L" pos="-0.0087376 0.1 0" quat=" 0.0002956 -0.0000209 0.9975159 0.0704416">
+		            <inertial pos="-0.015421 0.018373 0.0010459" quat="0.697669 0.71524 -0.0333357 -0.0240372" mass="0.1" diaginertia="3.394e-05 2.99498e-05 5.94866e-06" />
+		            <joint name="Joint_2_L" pos="0 0 0" axis="-1 0 0" limited="true" range="-2.5 2.5" damping="2.0e-2"/>    
+    		        <site name="Left_fingertip" type="sphere" size="0.015" pos="-0.01 0.07426 0.01054" group="4"/>
+		            <geom type="mesh" contype="1" conaffinity="1" group="1" rgba="0.37255 0.38824 0.43922 1" mesh="Link_2_L" />
+		        </body>
+		    </body>
+	    </body>
+
+        <body name="base_link_R" pos="0.1 0.1016 0">
+		    <inertial pos="-0.0127 -0.0381 0.023237" quat="0.706892 0.706891 0.0174838 0.0174101" mass="5" diaginertia="3.5163E-05 3.5888E-05 9.7478E-06" />
+		    <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.37255 0.38824 0.43922 1" mesh="base_link_R" />
+		    <body name="Link_1_R" pos="-0.0127 -0.0381 0.043409" quat="0.6532815 0.2705981 -0.6532815 0.2705981">
+                <inertial pos="-0.0018657 0.041762 -9.687e-08" quat="0.706892 0.706891 0.0174838 0.0174101" mass="0.1" diaginertia="0.000112274 0.00010696 8.04875e-06" />
+                <joint name="Joint_1_R" pos="0 0 0" axis="1 0 0" limited="true" range="-1.5 1.5" damping="2.0e-2"/>
+		       <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.37255 0.38824 0.43922 1" mesh="Link_1_R" />
+                <body name="Link_2_R" pos="-0.0087376 0.1 0" quat="0.0002956 0.0000209 0.9975159 -0.0704416">
+                    <inertial pos="-0.015421 0.018359 -0.0010318" quat="0.715245 0.697665 -0.0241332 -0.0332553" mass="0.1" diaginertia="3.39401e-05 2.99499e-05 5.94834e-06" />
+                    <joint name="Joint_2_R" pos="0 0 0" axis="1 0 0" limited="true" range="-2.5 2.5" damping="2.0e-2"/>
+        		    <site name="Right_fingertip" type="sphere" size="0.015" pos="-0.01 0.07426 -0.01054" group="4"/>
+		           <geom type="mesh" contype="1" conaffinity="1" group="1" rgba="0.37255 0.38824 0.43922 1" mesh="Link_2_R" />
+		        </body>
+		    </body>
+	    </body>
+	    
+	    <body name="object" pos="-0.01 -0.03 -0.02">
+    	    <geom name="object_bottom" type="box" size="0.02 0.02 0.045" mass="1e3" rgba="0.2 0.5 0.2 0"/>
+    	    <joint name="object:joint" type="free" damping="0.01"></joint>
+    	    <body name="object2" pos="0.0 0.0 0.055">
+    			<geom pos="0 0 -0.018" size="0.02 0.02 0.002" type="box" condim="6" name="object2_wall1" rgba="0.2 0. 0.3 0.3" mass="0.025"></geom>
+    			<geom pos="0 0 0.018" size="0.02 0.02 0.002" type="box" condim="6" name="object2_wall2" rgba="0.2 0. 0.3 0.3" mass="0.025"></geom>
+    			<geom pos="0 0.018 0" size="0.02 0.002 0.02" type="box" condim="6" name="object2_wall3" rgba="0.2 0. 0.3 0.3" mass="0.025"></geom>
+    			<geom pos="0 -0.018 0" size="0.02 0.002 0.02" type="box" condim="6" name="object2_wall4" rgba="0.2 0. 0.3 0.3" mass="0.025"></geom>
+    			<site name="spring_end1" pos="0 -0.015 0" size="0.001" rgba="1 0 0 1"/>
+    			<site name="spring_end2" pos="0 0.015 0" size="0.001" rgba="1 0 0 1"/>
+        			<body name="object3" pos="0 0 0">
+            			<geom pos="0 0 0" size="0.0025" type="sphere" condim="3" name="liquid" rgba="1 1 0 1" mass="0.1"></geom>
+            			<joint name="object3:joint" type="slide" axis="0 1 0" damping="1e0"></joint>
+            			<site name="object3" pos="0 0 0" size="0.001" rgba="1 0 0 0"/>
+            		</body>
+        	    <site name="object_site" type="box" size="0.021 0.021 0.01" pos="0 0 -0.0" rgba="0.2 0.5 0.2 0"/>
+		</body>
+	    </body>
+	    
+        <body name="debug_body" pos="0.0 0 0.047" quat="0.7071 0 -0.7071 0">
+            <site name="debug"  size="0.002 0.028" rgba="1 0 0 0.5" quat="1 0 0 0" type="cylinder"/>
+            <site name="debug2"  size="0.003" rgba="1 0 0 0.5" quat="1 0 0 0" type="sphere"/>
+        </body>
+	    
+    </worldbody>
+    
+    <actuator>
+        <position name='AJ1_L' kp="1.13715e0" tendon="T1_L" ctrllimited="true" ctrlrange="-3 3" gear="35.0877 0 0 0 0"/>
+        <position name='AJ2_L' kp="1.13715e0" tendon="T2_L" ctrllimited="true" ctrlrange="-3 3" gear="35.0877 0 0 0 0"/>
+        <position name='AJ1_R' kp="1.13715e0" tendon="T1_R" ctrllimited="true" ctrlrange="-3 3" gear="35.0877 0 0 0 0"/>
+        <position name='AJ2_R' kp="1.13715e0" tendon="T2_R" ctrllimited="true" ctrlrange="-3 3" gear="35.0877 0 0 0 0"/>
+    </actuator>
+    
+    <equality>
+    </equality>
+    
+    <tendon>
+        <fixed name="T1_L">
+            <joint joint="Joint_1_L" coef="0.01575"/>
+        </fixed>
+        <fixed name="T2_L">
+            <joint joint="Joint_1_L" coef="0.01575"/>
+            <joint joint="Joint_2_L" coef="0.01575"/>
+        </fixed>
+        <fixed name="T1_R">
+            <joint joint="Joint_1_R" coef="0.01575"/>
+        </fixed>
+        <fixed name="T2_R">
+            <joint joint="Joint_1_R" coef="-0.01575"/>
+            <joint joint="Joint_2_R" coef="0.01575"/>
+        </fixed>
+        <spatial range="0 0.04" stiffness="5e1" width="0.001" limited="true">
+            <site site="spring_end1"/>
+            <site site="object3"/>
+        </spatial>
+        <spatial range="0 0.04" stiffness="5e1" width="0.001" limited="true">
+            <site site="spring_end2"/>
+            <site site="object3"/>
+        </spatial>
+    </tendon>
+    
+    <contact>
+        <!--pair geom1="object_bottom" geom2="ground" friction="1 1 0.005 0.0001 0.0001"/-->
+        <exclude body1="Link_1_L" body2="base_link_L"/>
+        <exclude body1="Link_1_L" body2="Link_2_L"/>
+
+        <exclude body1="Link_1_R" body2="base_link_R"/>
+        <exclude body1="Link_1_R" body2="Link_2_R"/>
+        
+        <exclude body1="Link_1_L" body2="object"/>
+        <exclude body1="object" body2="Link_2_L"/>
+        <exclude body1="Link_1_R" body2="object"/>
+        <exclude body1="object" body2="Link_2_R"/>
+        <!--exclude body1="Link_1_L" body2="object2"/>
+        <exclude body1="object2" body2="Link_2_L"/>
+        <exclude body1="Link_1_R" body2="object2"/>
+        <exclude body1="object2" body2="Link_2_R"/-->
+        
+        
+        <exclude body1="Link_1_L" body2="debug_body"/>
+        <exclude body1="Link_2_L" body2="debug_body"/>
+
+        <exclude body1="Link_1_R" body2="debug_body"/>
+        <exclude body1="Link_2_R" body2="debug_body"/>
+        
+        <exclude body1="object" body2="debug_body"/>
+        
+        
+    </contact>
+    
+    <sensor>
+        <touch name="fingertip_r" site="Right_fingertip"/>
+        <touch name="fingertip_l" site="Left_fingertip"/>
+        <touch name="object_frc" site="object_site"/>
+    </sensor>
+</mujoco>

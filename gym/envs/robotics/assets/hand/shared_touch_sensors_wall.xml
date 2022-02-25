@@ -1,0 +1,13 @@
+<mujoco>
+    <sensor>
+
+         <!--FOREFINGER-->
+
+        <touch name="robot0:TS_fftip_front_left"  site="robot0:T_fftip_front_left"></touch>
+        <touch name="robot0:TS_fftip_front_right" site="robot0:T_fftip_front_right"></touch>
+        <touch name="robot0:TS_fftip_back_left"   site="robot0:T_fftip_back_left"></touch>
+        <touch name="robot0:TS_fftip_back_right"  site="robot0:T_fftip_back_right"></touch>
+        <touch name="robot0:TS_fftip_tip"         site="robot0:T_fftip_tip"></touch>
+
+    </sensor>
+</mujoco>
