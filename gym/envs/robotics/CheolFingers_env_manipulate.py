@@ -20,29 +20,6 @@ m2 = 0.05
 
 Rm = 0.0285
 
-frictionData_L = np.load('C:/Users/mk37972/Coding/gym_adjustments/friction_data_L.npz', allow_pickle=True) #load the demonstration data from data file
-frictionData_R = np.load('C:/Users/mk37972/Coding/gym_adjustments/friction_data_R.npz', allow_pickle=True) #load the demonstration data from data file
-
-fric_in_L = frictionData_L['input_data']
-fric_out_L = frictionData_L['force']
-fric_in_R = frictionData_R['input_data']
-fric_out_R = frictionData_R['force']
-processed_input_L = []
-processed_output_L = []
-processed_input_R = []
-processed_output_R = []
-
-for epsd in range(1): # we initialize the whole demo buffer at the start of the training
-    for transition in range(6435):
-        processed_input_L.append([fric_in_L[epsd][transition]])
-        processed_output_L.append([fric_out_L[epsd][transition]])
-        processed_input_R.append([fric_in_L[epsd][transition]])
-        processed_output_R.append([fric_out_L[epsd][transition]])
-input_data_L = np.array(processed_input_L).reshape([6435,4])
-force_data_L = np.array(processed_output_L).reshape([6435,2])
-input_data_R = np.array(processed_input_R).reshape([6435,4])
-force_data_R = np.array(processed_output_R).reshape([6435,2])
-
 def tansig(x):
     tansig = 2/(1+np.exp(-2*x))-1
     return tansig
@@ -164,8 +141,8 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.broken_table = False
         self.broken_object = False
         self.max_stiffness = 1.
-        self.prev_stiffness = self.max_stiffness
-        self.prev_stiffness_limit = self.max_stiffness
+        self.prev_stiffness = 1.
+        self.prev_stiffness_limit = 1.
         self.actual_max_stiffness = 1.13715e-0
         self.actual_max_friction = 2.e-2
         self.object_fragility = 4.5
@@ -269,18 +246,18 @@ class CheolFingersEnv(robot_env.RobotEnv):
             
             self.prev_stiffness_limit += stiffness_limit
             self.prev_stiffness_limit = np.max([np.min([self.prev_stiffness_limit, self.max_stiffness]), self.max_stiffness / 10.0])
-            # self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ1_R'), 0] = self.actual_max_stiffness * self.prev_stiffness_limit 
-            # self.sim.model.actuator_biasprm[self.sim.model.actuator_name2id('AJ1_R'), 1] = -self.actual_max_stiffness * self.prev_stiffness_limit 
-            # self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ2_R'), 0] = self.actual_max_stiffness * self.prev_stiffness_limit 
-            # self.sim.model.actuator_biasprm[self.sim.model.actuator_name2id('AJ2_R'), 1] = -self.actual_max_stiffness * self.prev_stiffness_limit 
-            # self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ1_L'), 0] = self.actual_max_stiffness * self.prev_stiffness_limit 
-            # self.sim.model.actuator_biasprm[self.sim.model.actuator_name2id('AJ1_L'), 1] = -self.actual_max_stiffness * self.prev_stiffness_limit 
-            # self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ2_L'), 0] = self.actual_max_stiffness * self.prev_stiffness_limit 
-            # self.sim.model.actuator_biasprm[self.sim.model.actuator_name2id('AJ2_L'), 1] = -self.actual_max_stiffness * self.prev_stiffness_limit 
-            # self.sim.model.dof_damping[self.sim.model.joint_name2id('Joint_1_L')] = self.actual_max_friction * self.prev_stiffness_limit
-            # self.sim.model.dof_damping[self.sim.model.joint_name2id('Joint_1_R')] = self.actual_max_friction * self.prev_stiffness_limit
-            # self.sim.model.dof_damping[self.sim.model.joint_name2id('Joint_2_L')] = self.actual_max_friction * self.prev_stiffness_limit
-            # self.sim.model.dof_damping[self.sim.model.joint_name2id('Joint_2_R')] = self.actual_max_friction * self.prev_stiffness_limit
+            self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ1_R'), 0] = self.actual_max_stiffness * self.prev_stiffness_limit 
+            self.sim.model.actuator_biasprm[self.sim.model.actuator_name2id('AJ1_R'), 1] = -self.actual_max_stiffness * self.prev_stiffness_limit 
+            self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ2_R'), 0] = self.actual_max_stiffness * self.prev_stiffness_limit 
+            self.sim.model.actuator_biasprm[self.sim.model.actuator_name2id('AJ2_R'), 1] = -self.actual_max_stiffness * self.prev_stiffness_limit 
+            self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ1_L'), 0] = self.actual_max_stiffness * self.prev_stiffness_limit 
+            self.sim.model.actuator_biasprm[self.sim.model.actuator_name2id('AJ1_L'), 1] = -self.actual_max_stiffness * self.prev_stiffness_limit 
+            self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ2_L'), 0] = self.actual_max_stiffness * self.prev_stiffness_limit 
+            self.sim.model.actuator_biasprm[self.sim.model.actuator_name2id('AJ2_L'), 1] = -self.actual_max_stiffness * self.prev_stiffness_limit 
+            self.sim.model.dof_damping[self.sim.model.joint_name2id('Joint_1_L')] = self.actual_max_friction * self.prev_stiffness_limit
+            self.sim.model.dof_damping[self.sim.model.joint_name2id('Joint_1_R')] = self.actual_max_friction * self.prev_stiffness_limit
+            self.sim.model.dof_damping[self.sim.model.joint_name2id('Joint_2_L')] = self.actual_max_friction * self.prev_stiffness_limit
+            self.sim.model.dof_damping[self.sim.model.joint_name2id('Joint_2_R')] = self.actual_max_friction * self.prev_stiffness_limit
             
             stiffness_ctrl = 0.2 * self.max_stiffness * action[3]
             
@@ -463,37 +440,27 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.prev_lforce = l_finger_force
         self.prev_rforce = r_finger_force
         self.prev_oforce = o_force
-        
         # Is object within grasp?
         if self.eval_env == True:
-            if self.est_torques_L[0,0] < -self.min_grip/10.0 and self.est_torques_R[0,0] > self.min_grip/10.0 and np.linalg.norm(self.est_obj_pose - self.p[1:3])<0.05 and np.linalg.norm(self.vel_p[0,0]) < 1e-4 and self.p[0,0] > 0.025 and self.p[0,0] < 0.05:
+            if self.est_torques_R[0,0] - self.est_torques_L[0,0] > 0.14 and np.linalg.norm(self.vel_p[0,0]) < 1e-4 and self.p[0,0] > 0.025:
                 self.est_obj_pose = self.p[1:3].copy()
-                # print("updating")
-                self.sim.model.geom_size[self.sim.model.geom_name2id('object_bottom'),2] = 0.005
-                # self.sim.model.body_mass[self.sim.model.body_name2id('object')] = 1e-3
                 # self.sim.data.qvel[self.sim.model.joint_name2id('object:joint')+1] += 0.5*(np.random.random()-0.5)
-            else:
-            #     # self.sim.model.body_mass[self.sim.model.body_name2id('object')] = 1e-3
-                self.sim.model.geom_size[self.sim.model.geom_name2id('object_bottom'),2] = 0.05
-                # print(self.est_grasping_force, np.linalg.norm(self.vel_p[0,0]), self.p[0,0])
         else:
             if self.p[0,0] > 0.025 and object_frc > self.min_grip and l_finger_force > 0.0 and r_finger_force > 0.0:# and l_finger_force * r_finger_force == 0.):
                 self.est_obj_pose = self.p[1:3].copy()
-                # self.sim.model.body_mass[self.sim.model.body_name2id('object')] = 1e-3
-                
-                self.sim.model.geom_size[self.sim.model.geom_name2id('object_bottom'),2] = 0.005
-                
                 # self.sim.data.qvel[self.sim.model.joint_name2id('object:joint')+1] += 0.5*(np.random.random()-0.5)
-            else:
-                self.sim.model.geom_size[self.sim.model.geom_name2id('object_bottom'),2] = 0.05
-                # self.sim.model.body_mass[self.sim.model.body_name2id('object')] = 1e3
+        
+        if self.p[0,0] > 0.025 and object_frc > self.min_grip and l_finger_force > 0.0 and r_finger_force > 0.0:
+             self.sim.model.geom_size[self.sim.model.geom_name2id('object_bottom'),2] = 0.005
+        else:
+             self.sim.model.geom_size[self.sim.model.geom_name2id('object_bottom'),2] = 0.05
         
         if self.n_actions == 5:
             observation = np.array([self.p[0,0], self.p[1,0], self.p[2,0], # l, theta, cen_x, cen_y
                                     self.des_p[0,0]-self.p[0,0], self.des_p[1,0]-self.p[1,0], self.des_p[2,0]-self.p[2,0],
                                     self.goal[0]-self.est_obj_pose[0,0], self.goal[1]-self.est_obj_pose[1,0],
                                     self.est_obj_pose[0,0]-self.p[1,0], self.est_obj_pose[1,0]-self.p[2,0],
-                                    self.est_grasping_force_L, self.est_grasping_force_R,
+                                    self.est_torques_L[0,0], self.est_torques_R[0,0],
                                     self.vel_L[0,0,0], self.vel_L[0,1,0],self.vel_R[0,0,0], self.vel_R[0,1,0],
                                     self.prev_stiffness, self.prev_stiffness_limit
                                     ])
@@ -502,7 +469,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
                                     self.des_p[0,0]-self.p[0,0], self.des_p[1,0]-self.p[1,0], self.des_p[2,0]-self.p[2,0],
                                     self.goal[0]-self.est_obj_pose[0,0], self.goal[1]-self.est_obj_pose[1,0],
                                     self.est_obj_pose[0,0]-self.p[1,0], self.est_obj_pose[1,0]-self.p[2,0],
-                                    self.est_grasping_force_L, self.est_grasping_force_R,
+                                    self.est_torques_L[0,0], self.est_torques_R[0,0],
                                     self.vel_L[0,0,0], self.vel_L[0,1,0],self.vel_R[0,0,0], self.vel_R[0,1,0],
                                    ])
         
@@ -554,8 +521,8 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.max_vel_R = 0.0
         
         # reset stiffness
-        self.prev_stiffness = self.max_stiffness
-        self.prev_stiffness_limit = self.max_stiffness
+        self.prev_stiffness = 1.
+        self.prev_stiffness_limit = 1.
         self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ1_R'), 0] = self.actual_max_stiffness * self.prev_stiffness_limit 
         self.sim.model.actuator_biasprm[self.sim.model.actuator_name2id('AJ1_R'), 1] = -self.actual_max_stiffness * self.prev_stiffness_limit 
         self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ2_R'), 0] = self.actual_max_stiffness * self.prev_stiffness_limit 

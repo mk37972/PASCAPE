@@ -107,9 +107,9 @@ from baselines import run
 defaultargs = ['--alg=her','--env=CheolFingersManipulate-v1', '--num_timesteps=0', '--play']
 if __name__ == '__main__':
     for dim in [5]:
-        for seed in [1000]:
+        for seed in [10]:
             for pert in ['none']:
-                loadpath = '--load_path=./models/Dark/Manipulate/Delayed_env/PASCAPE_10/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
+                loadpath = '--load_path=./models/Dark/Manipulate/Delayed_env/SCAPE_10/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
                 perturb = '--perturb={}'.format(pert)
                 algdim = '--algdim={}'.format(dim)
                 eval_env = '--eval_env=True'

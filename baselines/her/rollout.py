@@ -175,7 +175,7 @@ class RolloutWorker:
             elif self.venv.envs[0].env.spec.id == 'CheolFingersSearch-v1':
                 success2 = (np.float32(self.venv.envs[0].env.prev_oforce).mean() < 3.25)
             elif self.venv.envs[0].env.spec.id == 'CheolFingersManipulate-v1':
-                success2 = (np.float32(self.venv.envs[0].env.prev_oforce).mean() < 2.5)
+                success2 = (np.float32(self.venv.envs[0].env.prev_oforce).mean() < 4.5)
             elif self.venv.envs[0].env.spec.id == 'CheolFingersLiquid-v1':
                 success2 = (np.float32(self.venv.envs[0].env.prev_oforce).mean() < 3.25)
             

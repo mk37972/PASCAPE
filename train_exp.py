@@ -150,10 +150,10 @@ import mpi4py
 defaultargs = ['--alg=her','--env=CheolFingersManipulate-v1', '--num_timesteps=2e5']
 for dim in [5]:
     for seed in [10,100,1000]:
-        savepath = '--save_path=./models/Dark/Manipulate/Delayed_env/SCAPE_10/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
+        savepath = '--save_path=./models/Dark/Manipulate/Delayed_env/PASCAPE_10/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
         # loadpath = '--load_path=./models/Dark/ideal_65/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
-        demofile = '--demo_file=./DarkManipulationStiffDemo_{}D.npz'.format(dim)
-        logpath = '--log_path=./models/Dark/Manipulate/Delayed_env/SCAPE_10/NuFingers_bad{}dim_{}_log'.format(dim,seed)
+        demofile = '--demo_file=./PASCAPE/DarkManipulationStiffDemo_{}D.npz'.format(dim)
+        logpath = '--log_path=./models/Dark/Manipulate/Delayed_env/PASCAPE_10/NuFingers_bad{}dim_{}_log'.format(dim,seed)
         perturb = '--perturb=none'
         algdim = '--algdim={}'.format(dim)
         eval_env = '--eval_env=False'
