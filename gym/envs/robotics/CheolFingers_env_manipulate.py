@@ -220,7 +220,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
         # print((est_angle > 0.17).astype(np.float32))
         # print(((est_dist > self.distance_threshold).astype(np.float32) + (est_angle > 0.17).astype(np.float32) > 0).astype(np.float32))
         # print(est_vel.astype(np.float32))
-        return -(est_dist > self.distance_threshold).astype(np.float32) - 4.*force_rew - 1.*vel_rew #- 1.*flag_rew
+        return -(est_dist > self.distance_threshold).astype(np.float32) - 1.0*force_rew - 0.1*vel_rew #- 1.*flag_rew
         
 
     # RobotEnv methods
@@ -342,6 +342,10 @@ class CheolFingersEnv(robot_env.RobotEnv):
                 self.sim.data.ctrl[3] = -0.99159258      
 
     def _get_obs(self):
+        dt = self.sim.nsubsteps * self.sim.model.opt.timestep
+        l_finger_force = self.prev_lforce + (self.sim.data.sensordata[self.sim.model.sensor_name2id('fingertip_l')] - self.prev_lforce) * dt / 0.5
+        r_finger_force = self.prev_rforce + (self.sim.data.sensordata[self.sim.model.sensor_name2id('fingertip_r')] - self.prev_rforce) * dt / 0.5
+        o_force = self.prev_oforce + (self.sim.data.sensordata[self.sim.model.sensor_name2id('object_frc')] - self.prev_oforce) * dt / 0.5
         Ksc = np.matrix([[self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ1_R'), 0], 0],[0, self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ2_R'), 0]]])/Rm/Rm
         Ksc_L = np.matrix([[self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ1_L'), 0], 0],[0, self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ2_L'), 0]]])/Rm/Rm
         # update only when robot can observe
@@ -384,11 +388,10 @@ class CheolFingersEnv(robot_env.RobotEnv):
             self.Prev_Lj = self.Lj
             self.Prev_p = self.p
             
-            if self.max_ext_torques_L > self.est_torques_L[0,0]: 
-                self.max_ext_torques_L = np.tanh(self.est_torques_L[0,0])
-            if self.max_ext_torques_R < self.est_torques_R[0,0]: 
-                self.max_ext_torques_R = np.tanh(self.est_torques_R[0,0])
-            if self.max_vel_L < np.linalg.norm(self.vel_L[0]): 
+            if self.max_ext_torques_L < l_finger_force: 
+                self.max_ext_torques_L = l_finger_force
+            if self.max_ext_torques_R < r_finger_force: 
+                self.max_ext_torques_R = r_finger_force
                 self.max_vel_L = np.tanh(np.linalg.norm(self.vel_L[0]))
             if self.max_vel_R < np.linalg.norm(self.vel_R[0]): 
                 self.max_vel_R = np.tanh(np.linalg.norm(self.vel_R[0]))
@@ -411,19 +414,15 @@ class CheolFingersEnv(robot_env.RobotEnv):
             unobserved_vel_L = (unobserved_Lj - self.Prev_Lj)/2
             unobserved_vel_R[1] = -unobserved_vel_R[1]
             
-            if self.max_ext_torques_L > unobserved_est_grasping_force_L: 
-                self.max_ext_torques_L = np.tanh(unobserved_est_grasping_force_L)
-            if self.max_ext_torques_R < unobserved_est_grasping_force_R: 
-                self.max_ext_torques_R = np.tanh(unobserved_est_grasping_force_R)
+            if self.max_ext_torques_L < l_finger_force: 
+                self.max_ext_torques_L = l_finger_force
+            if self.max_ext_torques_R < r_finger_force: 
+                self.max_ext_torques_R = r_finger_force
             if self.max_vel_L < np.linalg.norm(unobserved_vel_L): 
                 self.max_vel_L = np.tanh(np.linalg.norm(unobserved_vel_L))
             if self.max_vel_R < np.linalg.norm(unobserved_vel_R): 
                 self.max_vel_R = np.tanh(np.linalg.norm(unobserved_vel_R))
                 
-        dt = self.sim.nsubsteps * self.sim.model.opt.timestep
-        l_finger_force = self.prev_lforce + (self.sim.data.sensordata[self.sim.model.sensor_name2id('fingertip_l')] - self.prev_lforce) * dt / 0.5
-        r_finger_force = self.prev_rforce + (self.sim.data.sensordata[self.sim.model.sensor_name2id('fingertip_r')] - self.prev_rforce) * dt / 0.5
-        o_force = self.prev_oforce + (self.sim.data.sensordata[self.sim.model.sensor_name2id('object_frc')] - self.prev_oforce) * dt / 0.5
         
         self.sim.model.body_quat[self.sim.model.body_name2id('debug_body')] = ToQuaternion(0, -np.pi/2.0, np.pi/2.0)
         self.sim.model.body_pos[self.sim.model.body_name2id('debug_body'),0:2] = np.array([-self.p[2,0] + 0.0873, self.p[1,0] - 0.0635])
@@ -584,8 +583,8 @@ class CheolFingersEnv(robot_env.RobotEnv):
         # self.est_obj_pose_init = np.array([[-0.5], [-0.5]])
         
         self.est_obj_pose += np.array([[(np.random.random_sample()-0.5)*0.02], [(np.random.random_sample()-0.5)*0.02]])
-        # self.sim.model.geom_size[self.sim.model.geom_name2id('object_top'),1] = (np.random.random_sample())*0.005 + 0.01
-        # self.sim.model.site_size[self.sim.model.site_name2id('object_site'),1] = self.sim.model.geom_size[self.sim.model.geom_name2id('object_top'),0] + 0.005
+        self.sim.model.geom_size[self.sim.model.geom_name2id('object_top'),1] = 0.01 + (np.random.random_sample())*0.005
+        self.sim.model.site_size[self.sim.model.site_name2id('object_site'),1] = self.sim.model.geom_size[self.sim.model.geom_name2id('object_top'),0] + 0.005
         # self.sim.model.body_mass[self.sim.model.body_name2id('object2')] = np.random.random_sample()*0.05 + 0.1
         ## domain randomization
         # self.sim.model.body_pos[self.sim.model.body_name2id('Sensor_base')][0] = -0.0327 + 0.01 * (np.random.random()- 0.5)
