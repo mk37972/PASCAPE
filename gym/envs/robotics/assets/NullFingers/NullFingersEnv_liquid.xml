@@ -1,0 +1,193 @@
+<mujoco model="NullFingers">
+    <compiler angle="radian" meshdir="./" texturedir="./"/>
+    <option timestep = "0.005" gravity="0 0 -9.81" cone="elliptic"/>
+    <asset>
+        <material name="table_mat" specular="0" shininess="0.5" reflectance="0" rgba="0.93 0.93 0.93 1"></material>
+		<texture name="marblecube" type="cube" file="marble.png"/>
+		<texture file="wood.png"/>
+		<texture name="groundplane" type="2d" builtin="checker" rgb1=".2 .3 .4" rgb2=".1 .2 .3" 
+            width="100" height="100"/>
+		<texture name="skin" type="cube" file="skin.png"/>
+		<material name="groundplane" texture="groundplane" texrepeat="100 100"/>
+		<material name="tablecube" texture="marblecube" rgba=".8 .8 .8 1"/>
+        <material name="MatWood" texture="wood" specular="0.4" shininess=".1" texrepeat="3 3"/>
+        <material name="MatRobot" texture="skin" rgba=".6 .6 .6 1"/>
+        <material name="MatObject" specular="0.1" shininess=".1" texrepeat="3 3" rgba="0.4118 0.6941 0.8941 1"/>
+        
+        <mesh name="base_link_L" file="Link_0_L.STL" />
+        <mesh name="Link_1_L" file="Link_1_L.STL" />
+        <mesh name="Link_2_L" file="Link_2_L.STL" />
+        <mesh name="base_link_R" file="Link_0_R.STL" />
+        <mesh name="Link_1_R" file="Link_1_R.STL" />
+        <mesh name="Link_2_R" file="Link_2_R.STL" />
+    </asset>
+    <worldbody>
+    	<body mocap="true" name="mocap_l" pos="0 0 0.056965">
+    		<geom conaffinity="0" contype="0" pos="0 0 0" rgba="0 0.5 0 0.1" size="0.005 0.005 0.005" type="box"></geom>
+    		<geom conaffinity="0" contype="0" pos="0 0 0" rgba="0 0.5 0 0." size="1 0.005 0.005" type="box"></geom>
+    		<geom conaffinity="0" contype="0" pos="0 0 0" rgba="0 0.5 0 0." size="0.005 1 0.001" type="box"></geom>
+    		<geom conaffinity="0" contype="0" pos="0 0 0" rgba="0 0.5 0 0." size="0.005 0.005 1" type="box"></geom>
+    	</body>
+    	<body mocap="true" name="mocap_r" pos="0 0 0.056965">
+    		<geom conaffinity="0" contype="0" pos="0 0 0" rgba="0 0.5 0 0.1" size="0.005 0.005 0.005" type="box"></geom>
+    		<geom conaffinity="0" contype="0" pos="0 0 0" rgba="0 0.5 0 0." size="1 0.005 0.005" type="box"></geom>
+    		<geom conaffinity="0" contype="0" pos="0 0 0" rgba="0 0.5 0 0." size="0.005 1 0.001" type="box"></geom>
+    		<geom conaffinity="0" contype="0" pos="0 0 0" rgba="0 0.5 0 0." size="0.005 0.005 1" type="box"></geom>
+    	</body>
+        <body name="target_body" pos="-0.0327 0 0.047" quat="0.7071 0 -0.7071 0">
+            <site name="target0"  size="0.001 0.02" rgba="1 0 0 0" quat="1 0 0 0" type="cylinder"/>
+        </body>
+    
+	    <light directional="false" ambient="0.2 0.2 0.2" diffuse="0.8 0.8 0.8" specular="0.3 0.3 0.3" castshadow="false" pos="0 0 0.5" dir="0 0 -1" name="light0"/>
+	    <geom name='ground' pos="0.0 0 -0.0625" size="0.15 0.2 0.00625"  type="box" contype="1" conaffinity="0" material="tablecube" mass="1e7"/>
+	    <geom name='ground2' pos="0.115 0 -0.028125" size="0.035 0.2 0.028125"  type="box" contype="1" conaffinity="0" material="MatWood" mass="1e7"/>
+        <geom contype="0" conaffinity="0" type="plane" pos="0 0 -0.1" size="10 10 0.25" material="groundplane"/>
+	    <camera name="fixed" pos="0 -0.7 0.7" quat="0.92388 0.382683 0 0" />
+	    <camera name="vil_camera" pos="0 -1.2 1.2" quat="0.92388 0.382683 0 0" />
+
+	    <body name="base_link_L" pos="0.1 -0.0635 0" quat="0 0 0 1">
+		    <geom type="mesh" contype="0" conaffinity="0" group="1" material="MatRobot" mesh="base_link_L" mass="1e7"/>
+            <body name="Link_1_L" pos="0 0 0.056965" quat="0.9238795 0 0 0.3826834">
+                <inertial pos="0.025459 0.00053785 -0.010009" quat="0.00202383 0.71201 0.00236074 0.702163" mass="0.031455" diaginertia="2.00157e-05 1.9023e-05 1.19225e-06" />
+		        <joint name="Joint_1_L" pos="0 0 0" axis="0 0 1" limited="true" range="-1.5 1.5" damping=".0e-2"/>
+		        <geom type="mesh" contype="0" conaffinity="0" group="1" material="MatRobot" mesh="Link_1_L" />
+                <body name="Link_2_L" pos="0.1 0 0">
+                    <inertial pos="0.014841 0.0017147 -0.0042253" quat="-0.0345896 0.710071 0.0497318 0.70152" mass="0.022494" diaginertia="4.12467e-06 3.74292e-06 7.35809e-07" />
+		            <joint name="Joint_2_L" pos="0 0 0" axis="0 0 1" limited="true" range="-2.5 -0.1" damping=".0e-2"/> 
+    		        <site name="Left_fingertip" pos="0.075 0.01 0.005" type="sphere" size="0.015" group="4"/>
+		            <geom name="fingertip_l" type="mesh" contype="1" conaffinity="1" group="1" material="MatRobot" mesh="Link_2_L" />
+		            <body name="Left_fingertip_body" pos="0.075 0. 0">
+    		            <inertial pos="0.0358579 -0.000463775 -0.0104944" quat="-0.00041782 0.712306 -0.00336893 0.701861" mass="0.0365558" diaginertia="1.78743e-05 1.68084e-05 1.28297e-06" />
+    		            <joint name="virtual_trans_l" type="slide" pos="0 0 0" axis="0 0 1"/>
+    		            <joint name="virtual_rot_l" type="hinge" pos="0 0 0" axis="0 0 1"/>
+		            </body>
+		        </body>
+		    </body>
+	    </body>
+
+        <body name="base_link_R" pos="0.1 0.0635 0" quat="0 0 -0.707105 0.707105">
+		    <geom type="mesh" contype="0" conaffinity="0" group="1" material="MatRobot" mesh="base_link_R"  mass="1e7"/>
+		    <body name="Link_1_R" pos="0 -0.056965 0" quat="0.6532815 0.6532815 0.2705981 -0.2705981">
+                <inertial pos="0.0358579 -0.000463775 -0.0104944" quat="-0.00041782 0.712306 -0.00336893 0.701861" mass="0.0365558" diaginertia="1.78743e-05 1.68084e-05 1.28297e-06" />
+                <joint name="Joint_1_R" pos="0 0 0" axis="0 0 1" limited="true" range="-1.5 1.5" damping=".0e-2"/>
+		        <geom type="mesh" contype="0" conaffinity="0" group="1" material="MatRobot" mesh="Link_1_R" />
+                <body name="Link_2_R" pos="0.1 0 0">
+                    <inertial pos="0.0148405 -0.00171468 -0.00433381" quat="0.0345895 0.710071 -0.0497319 0.701519" mass="0.0224945" diaginertia="4.1247e-06 3.74299e-06 7.35825e-07" />
+                    <joint name="Joint_2_R" pos="0 0 0" axis="0 0 -1" limited="true" range="-2.5 -0.1" damping=".0e-2"/>
+        		    <site name="Right_fingertip" pos="0.075 -0.01 0.005" type="sphere" size="0.015" group="4"/>
+		            <geom name="fingertip_r" type="mesh" contype="1" conaffinity="1" group="1" material="MatRobot" mesh="Link_2_R" />
+		            <body name="Right_fingertip_body" pos="0.075 0. 0">
+    		            <inertial pos="0.0358579 -0.000463775 -0.0104944" quat="-0.00041782 0.712306 -0.00336893 0.701861" mass="0.0365558" diaginertia="1.78743e-05 1.68084e-05 1.28297e-06" />
+    		            <joint name="virtual_trans_r" type="slide" pos="0 0 0" axis="0 0 1"/>
+    		            <joint name="virtual_rot_r" type="hinge" pos="0 0 0" axis="0 0 1"/>
+		            </body>
+		        </body>
+		    </body>
+	    </body>
+	    
+	    <body name="object" pos="-0.01 -0.03 -0.02">
+    	    <geom name="object_bottom" type="box" size="0.02 0.02 0.045" mass="1e3" rgba="0.4118 0.6941 0.8941 0.1"/>
+    	    <joint name="object:joint" type="free" damping="0.01"></joint>
+    	    <body name="object2" pos="0.0 0.0 0.055">
+ 			<geom pos="0 0 -0.018" size="0.02 0.02 0.002" type="box" condim="6" name="object2_wall1" material="MatObject" mass="0.025"></geom>
+ 			<geom pos="0 0 0.018" size="0.02 0.02 0.002" type="box" condim="6" name="object2_wall2" material="MatObject" mass="0.025"></geom>
+ 			<geom pos="0 0.018 0" size="0.02 0.002 0.02" type="box" condim="6" name="object2_wall3" material="MatObject" mass="0.025"></geom>
+ 			<geom pos="0 -0.018 0" size="0.02 0.002 0.02" type="box" condim="6" name="object2_wall4" material="MatObject" mass="0.025"></geom>
+ 			<site name="spring_end1" pos="0 -0.015 0" size="0.001" rgba="1 0 0 1"/>
+ 			<site name="spring_end2" pos="0 0.015 0" size="0.001" rgba="1 0 0 1"/>
+     			<body name="object3" pos="0 0 0">
+         			<geom pos="0 0 0" size="0.0025" type="sphere" condim="3" name="liquid" rgba="0.4118 0.6941 0.8941 1" mass="0.1"></geom>
+         			<joint name="object3:joint" type="slide" axis="0 1 0" damping="1e0"></joint>
+         			<site name="object3" pos="0 0 0" size="0.001" rgba="0.4118 0.6941 0.8941 0.1"/>
+         		</body>
+         	    <site name="object_site" type="box" size="0.021 0.021 0.01" pos="0 0 -0.0" rgba="0.2 0.5 0.2 0"/>
+        	</body>
+	    </body>
+	    
+        <body name="debug_body" pos="0.0 0 0.047" quat="0.7071 0 -0.7071 0">
+            <site name="debug"  size="0.002 0.028" rgba="1 0 0 0" quat="1 0 0 0" type="cylinder"/>
+            <site name="debug2"  size="0.003" rgba="1 0 0 0" quat="1 0 0 0" type="sphere"/>
+        </body>
+	    
+    </worldbody>
+    
+    <!--actuator>
+        <position name='AJ1_L' kp="2.30399e-9" tendon="T1_L" ctrllimited="true" ctrlrange="-3 3" gear="83.33 0 0 0 0"/>
+        <position name='AJ2_L' kp="1.15199e-9" tendon="T2_L" ctrllimited="true" ctrlrange="-3 3" gear="83.33 0 0 0 0"/>
+        <position name='AJ1_R' kp="2.30399e-9" tendon="T1_R" ctrllimited="true" ctrlrange="-3 3" gear="83.33 0 0 0 0"/>
+        <position name='AJ2_R' kp="1.15199e-9" tendon="T2_R" ctrllimited="true" ctrlrange="-3 3" gear="83.33 0 0 0 0"/>
+    </actuator-->
+    
+    <equality>
+        <weld body1="mocap_l" body2="Left_fingertip_body" solimp="0.9 0.9 0.01" solref="0.01 1"></weld>
+        <weld body1="mocap_r" body2="Right_fingertip_body" solimp="0.9 0.9 0.01" solref="0.01 1"></weld>
+    </equality>
+    
+    <tendon>
+        <fixed name="T1_L">
+            <joint joint="Joint_1_L" coef="0.012"/>
+        </fixed>
+        <fixed name="T2_L">
+            <joint joint="Joint_1_L" coef="0.012"/>
+            <joint joint="Joint_2_L" coef="0.012"/>
+        </fixed>
+        <fixed name="T1_R">
+            <joint joint="Joint_1_R" coef="0.012"/>
+        </fixed>
+        <fixed name="T2_R">
+            <joint joint="Joint_1_R" coef="-0.012"/>
+            <joint joint="Joint_2_R" coef="0.012"/>
+        </fixed>
+        <spatial range="0 0.04" stiffness="5e1" width="0.001" limited="true">
+            <site site="spring_end1"/>
+            <site site="object3"/>
+        </spatial>
+        <spatial range="0 0.04" stiffness="5e1" width="0.001" limited="true">
+            <site site="spring_end2"/>
+            <site site="object3"/>
+        </spatial>
+    </tendon>
+    
+    <contact>
+        <pair geom1="object_bottom" geom2="ground" condim="4" solref="0.002 1"/>
+        <exclude body1="Link_1_L" body2="base_link_L"/>
+        <exclude body1="Link_1_L" body2="Link_2_L"/>
+
+        <exclude body1="Link_1_R" body2="base_link_R"/>
+        <exclude body1="Link_1_R" body2="Link_2_R"/>
+        
+        <exclude body1="Link_1_L" body2="object"/>
+        <exclude body1="object" body2="Link_2_L"/>
+        <exclude body1="Link_1_R" body2="object"/>
+        <exclude body1="object" body2="Link_2_R"/>
+        <!--exclude body1="Link_1_L" body2="object2"/>
+        <exclude body1="object2" body2="Link_2_L"/>
+        <exclude body1="Link_1_R" body2="object2"/>
+        <exclude body1="object2" body2="Link_2_R"/-->
+        <pair geom1="object2_wall1" geom2="fingertip_l" condim="6" solref="0.002 1" solimp="0.95 0.995 0.001"/>
+        <pair geom1="object2_wall1" geom2="fingertip_r" condim="6" solref="0.002 1" solimp="0.95 0.995 0.001"/>
+        <pair geom1="object2_wall2" geom2="fingertip_l" condim="6" solref="0.002 1" solimp="0.95 0.995 0.001"/>
+        <pair geom1="object2_wall2" geom2="fingertip_r" condim="6" solref="0.002 1" solimp="0.95 0.995 0.001"/>
+        <pair geom1="object2_wall3" geom2="fingertip_l" condim="6" solref="0.002 1" solimp="0.95 0.995 0.001"/>
+        <pair geom1="object2_wall3" geom2="fingertip_r" condim="6" solref="0.002 1" solimp="0.95 0.995 0.001"/>
+        <pair geom1="object2_wall4" geom2="fingertip_l" condim="6" solref="0.002 1" solimp="0.95 0.995 0.001"/>
+        <pair geom1="object2_wall4" geom2="fingertip_r" condim="6" solref="0.002 1" solimp="0.95 0.995 0.001"/>
+        
+        
+        <exclude body1="Link_1_L" body2="debug_body"/>
+        <exclude body1="Link_2_L" body2="debug_body"/>
+
+        <exclude body1="Link_1_R" body2="debug_body"/>
+        <exclude body1="Link_2_R" body2="debug_body"/>
+        
+        <exclude body1="object" body2="debug_body"/>
+        
+        
+    </contact>
+    
+    <sensor>
+        <touch name="fingertip_r" site="Right_fingertip"/>
+        <touch name="fingertip_l" site="Left_fingertip"/>
+        <touch name="object_frc" site="object_site"/>
+    </sensor>
+</mujoco>
