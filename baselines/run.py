@@ -5,10 +5,10 @@ import re
 import multiprocessing
 import os.path as osp
 import gym
-
+import mj_envs
+from mjrl.utils.gym_env import GymEnv
 from collections import defaultdict
 import tensorflow as tf
-
 from tfdeterminism import patch
 patch()
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
@@ -23,6 +23,7 @@ from baselines import logger
 from importlib import import_module
 
 from baselines.common import set_global_seeds
+
 try:
     from mpi4py import MPI
 except ImportError:
@@ -37,6 +38,7 @@ try:
     import roboschool
 except ImportError:
     roboschool = None
+
 _game_envs = defaultdict(set)
 for env in gym.envs.registry.all():
     # TODO: solve this with regexes
@@ -73,7 +75,7 @@ def train(args, extra_args):
     learn = get_learn_function(args.alg)
     args_eval = copy.deepcopy(args)
     args.eval_env = False
-    args_eval.eval_env = True
+    args_eval.eval_env = False
     print(args)
     print(args_eval)
     
@@ -180,12 +182,12 @@ def get_default_network(env_type):
 
 def get_alg_module(alg, submodule=None):
     submodule = submodule or alg
-    # try:
+    try:
         # first try to import the alg module from baselines
-    alg_module = import_module('.'.join(['baselines', alg, submodule]))
-    # except ImportError:
-    #     # then from rl_algs
-    #     alg_module = import_module('.'.join(['rl_' + 'algs', alg, submodule]))
+        alg_module = import_module('.'.join(['baselines', alg, submodule]))
+    except ImportError:
+        # then from rl_algs
+        alg_module = import_module('.'.join(['rl_' + 'algs', alg, submodule]))
 
     return alg_module
 
@@ -239,9 +241,9 @@ def main(args):
     else:
         rank = MPI.COMM_WORLD.Get_rank()
         configure_logger(args.log_path, format_strs=[])
-    print("I")
+    
     model, env, eval_env = train(args, extra_args)
-    print("am")
+    
     if args.save_path is not None and rank == 0:
         save_path = osp.expanduser(args.save_path)
         model.save(save_path)
@@ -288,10 +290,10 @@ def main(args):
                 force = - eval_env.envs[0].env.prev_lforce- eval_env.envs[0].env.prev_rforce
             elif args.env == 'CheolFingersManipulate-v1':
                 distance = 0.0
-                force = eval_env.envs[0].env.max_ext_torques_R
+                force = -eval_env.envs[0].env.prev_force
             elif args.env == 'CheolFingersSearch-v1':
                 distance = 0.0
-                force = eval_env.envs[0].env.prev_oforce
+                force = -eval_env.envs[0].env.des_tau[0,0]
             else: 
                 distance = np.linalg.norm(obs['achieved_goal'][0][:3] - obs['desired_goal'][0][:3])
                 if args.env == 'FetchPickAndPlaceFragile-v1' or args.env == 'FetchPickAndPlaceFragile-v5':
@@ -301,7 +303,7 @@ def main(args):
                 elif args.env == 'FetchPickAndPlaceFragile-v3':
                     force = - eval_env.envs[0].env.prev_lforce- eval_env.envs[0].env.prev_rforce
                     acc = np.sqrt(eval_env.envs[0].env.obj_acc*eval_env.envs[0].env.obj_acc)
-                    
+            
             obs, rew, done, info = eval_env.step(actions)
             # episodeInfo.append(info[0])
             # episodeAct.append(actions[0])
@@ -319,7 +321,7 @@ def main(args):
             
             if done_any:
                 for i in np.nonzero(done)[0]:
-                    print('episode_rew={}'.format(k))
+                    print('episode_rew={}'.format(episode_rew))
                     episode_rew[i] = 0
                 if args.filename is None:
                     print("Maximum force in the episode: {}".format(max_force))

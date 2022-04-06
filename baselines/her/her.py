@@ -11,7 +11,7 @@ import tensorflow as tf
 from baselines.common.mpi_moments import mpi_moments
 
 from baselines.her.rollout import RolloutWorker
-from baselines.her.rollout_NullFingers import RolloutWorker as RolloutNullFingers
+from baselines.her.rollout_NuFingers import RolloutWorker as RolloutNuFingers
 
 import baselines.her.experiment.config as config
 
@@ -156,7 +156,7 @@ def learn(*, network, env, total_timesteps,
         'num_demo': 25, # number of expert demo episodes
         'demo_batch_size': 200, #number of samples to be used from the demonstrations buffer, per mpi thread 128/1024 or 32/256
         'prm_loss_weight': 0.001, #Weight corresponding to the primary loss
-        'aux_loss_weight':  0.0078, #Weight corresponding to the auxilliary loss also called the cloning loss 0.0078
+        'aux_loss_weight':  0.01, #Weight corresponding to the auxilliary loss also called the cloning loss 0.0078
         'perturb':  kwargs['pert_type'],
         'n_actions':  kwargs['n_actions'],
     }
@@ -240,8 +240,8 @@ def learn(*, network, env, total_timesteps,
         rollout_worker = RolloutWorker(env, policy, dims, logger, monitor=True, **rollout_params)
         evaluator = RolloutWorker(eval_env, policy, dims, logger, **eval_params)
     else:
-        rollout_worker = RolloutNullFingers(policy, dims, logger, monitor=True, **rollout_params)
-        evaluator = RolloutNullFingers(policy, dims, logger, **eval_params)
+        rollout_worker = RolloutNuFingers(policy, dims, logger, monitor=True, **rollout_params)
+        evaluator = RolloutNuFingers(policy, dims, logger, **eval_params)
 
     n_cycles = params['n_cycles']
     n_epochs = total_timesteps // n_cycles // rollout_worker.T // rollout_worker.rollout_batch_size

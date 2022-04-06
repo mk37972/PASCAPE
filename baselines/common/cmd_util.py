@@ -7,8 +7,10 @@ try:
     from mpi4py import MPI
 except ImportError:
     MPI = None
-import gym
 
+import gym
+import mj_envs
+from mjrl.utils.gym_env import GymEnv
 from gym.wrappers import FlattenObservation, FilterObservation
 from baselines import logger
 from baselines.bench import Monitor
@@ -18,6 +20,7 @@ from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
 from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 from baselines.common import retro_wrappers
 from baselines.common.wrappers import ClipActionsWrapper
+
 def make_vec_env(env_id, env_type, num_env, seed,
                  wrapper_kwargs=None,
                  env_kwargs=None,
