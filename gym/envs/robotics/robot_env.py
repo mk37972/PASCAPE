@@ -63,12 +63,12 @@ class RobotEnv(gym.GoalEnv):
         self._step_callback()
         obs = self._get_obs()
             
-        # P-SCAPE
-        for i in range(9):
-            self._set_action(np.ones(self.action_space.shape)*i*1e-6)
-            self.sim.step()
-            self._step_callback()
-            obs = self._get_obs()
+        # # P-SCAPE
+        # for i in range(4):
+        #     self._set_action(np.ones(self.action_space.shape)*i*1e-6)
+        #     self.sim.step()
+        #     self._step_callback()
+        #     obs = self._get_obs()
 
         done = False
         info = {
@@ -88,7 +88,7 @@ class RobotEnv(gym.GoalEnv):
         did_reset_sim = False
         while not did_reset_sim:
             did_reset_sim = self._reset_sim()
-        self.sim.data.ctrl[:] *= 0.0
+        # self.sim.data.ctrl[:] *= 0.0
         self.goal = self._sample_goal().copy()
         obs = self._get_obs()
         return obs

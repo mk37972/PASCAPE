@@ -4,7 +4,7 @@ from gym.envs.robotics import CheolFingers_env_search
 
 
 # Ensure we get the path separator correct on windows
-MODEL_XML_PATH = os.path.join('CheolFingers', 'CheolFingersEnv.xml')
+MODEL_XML_PATH = os.path.join('NullFingers', 'NullFingersEnv.xml')
 
 
 class CheolFingersSearchEnv(CheolFingers_env_search.CheolFingersEnv, utils.EzPickle):

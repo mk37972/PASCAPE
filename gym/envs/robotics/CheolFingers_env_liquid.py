@@ -20,6 +20,29 @@ m2 = 0.05
 
 Rm = 0.0285
 
+frictionData_L = np.load('C:/Users/mk37972/Coding/gym_adjustments/friction_data_L.npz', allow_pickle=True) #load the demonstration data from data file
+frictionData_R = np.load('C:/Users/mk37972/Coding/gym_adjustments/friction_data_R.npz', allow_pickle=True) #load the demonstration data from data file
+
+fric_in_L = frictionData_L['input_data']
+fric_out_L = frictionData_L['force']
+fric_in_R = frictionData_R['input_data']
+fric_out_R = frictionData_R['force']
+processed_input_L = []
+processed_output_L = []
+processed_input_R = []
+processed_output_R = []
+
+for epsd in range(1): # we initialize the whole demo buffer at the start of the training
+    for transition in range(6435):
+        processed_input_L.append([fric_in_L[epsd][transition]])
+        processed_output_L.append([fric_out_L[epsd][transition]])
+        processed_input_R.append([fric_in_L[epsd][transition]])
+        processed_output_R.append([fric_out_L[epsd][transition]])
+input_data_L = np.array(processed_input_L).reshape([6435,4])
+force_data_L = np.array(processed_output_L).reshape([6435,2])
+input_data_R = np.array(processed_input_R).reshape([6435,4])
+force_data_R = np.array(processed_output_R).reshape([6435,2])
+
 def tansig(x):
     tansig = 2/(1+np.exp(-2*x))-1
     return tansig

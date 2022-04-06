@@ -11,7 +11,7 @@ import tensorflow as tf
 from baselines.common.mpi_moments import mpi_moments
 
 from baselines.her.rollout import RolloutWorker
-from baselines.her.rollout_NuFingers import RolloutWorker as RolloutNuFingers
+from baselines.her.rollout_NullFingers import RolloutWorker as RolloutNullFingers
 
 import baselines.her.experiment.config as config
 
@@ -240,8 +240,8 @@ def learn(*, network, env, total_timesteps,
         rollout_worker = RolloutWorker(env, policy, dims, logger, monitor=True, **rollout_params)
         evaluator = RolloutWorker(eval_env, policy, dims, logger, **eval_params)
     else:
-        rollout_worker = RolloutNuFingers(policy, dims, logger, monitor=True, **rollout_params)
-        evaluator = RolloutNuFingers(policy, dims, logger, **eval_params)
+        rollout_worker = RolloutNullFingers(policy, dims, logger, monitor=True, **rollout_params)
+        evaluator = RolloutNullFingers(policy, dims, logger, **eval_params)
 
     n_cycles = params['n_cycles']
     n_epochs = total_timesteps // n_cycles // rollout_worker.T // rollout_worker.rollout_batch_size

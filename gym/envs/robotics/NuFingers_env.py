@@ -213,10 +213,10 @@ class NuFingersEnv(robot_env.RobotEnv):
                 self.sim.data.ctrl[2] = -0.3
                 self.sim.data.ctrl[3] = -0.66
         
-        self.sim.data.ctrl[0] = des_mL[0,0]
-        self.sim.data.ctrl[1] = des_mL[1,0]
-        self.sim.data.ctrl[2] = des_mR[0,0]
-        self.sim.data.ctrl[3] = des_mR[1,0]
+        # self.sim.data.ctrl[0] = des_mL[0,0]
+        # self.sim.data.ctrl[1] = des_mL[1,0]
+        # self.sim.data.ctrl[2] = des_mR[0,0]
+        # self.sim.data.ctrl[3] = des_mR[1,0]
 
     def _get_obs(self):
         # positions
