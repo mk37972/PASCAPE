@@ -147,28 +147,13 @@ import mpi4py
         
 #         run.main(finalargs)
         
-defaultargs = ['--alg=her','--env=CheolFingersManipulate-v1', '--num_timesteps=4e5']
-for dim in [5]:
-    for seed in [100,1000]:
-        savepath = '--save_path=./PASCAPE/models/Dark/Manipulate/Delayed_env/PASCAPE_10_2/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
-        # loadpath = '--load_path=./models/Dark/ideal_65/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
-        demofile = '--demo_file=./PASCAPE/DarkManipulationStiffDemo_{}D.npz'.format(dim)
-        logpath = '--log_path=./PASCAPE/models/Dark/Manipulate/Delayed_env/PASCAPE_10_2/NuFingers_bad{}dim_{}_log'.format(dim,seed)
-        perturb = '--perturb=none'
-        algdim = '--algdim={}'.format(dim)
-        eval_env = '--eval_env=False'
-        
-        finalargs = defaultargs + [savepath, demofile, logpath, perturb, algdim, eval_env, '--seed={}'.format(seed)]
-        
-        run.main(finalargs)
-        
-# defaultargs = ['--alg=her','--env=CheolFingersSearch-v1', '--num_timesteps=1e5']
-# for dim in [3]:
-#     for seed in [10,100,1000]:
-#         savepath = '--save_path=./models/Dark/Search/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
+# defaultargs = ['--alg=her','--env=CheolFingersManipulate-v1', '--num_timesteps=4e5']
+# for dim in [5]:
+#     for seed in [100,1000]:
+#         savepath = '--save_path=./PASCAPE/models/Dark/Manipulate/Delayed_env/PASCAPE_10_2/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
 #         # loadpath = '--load_path=./models/Dark/ideal_65/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
-#         demofile = '--demo_file=./DarkSearchDemo_{}D.npz'.format(dim)
-#         logpath = '--log_path=./models/Dark/Search/NuFingers_bad{}dim_{}_log'.format(dim,seed)
+#         demofile = '--demo_file=./PASCAPE/DarkManipulationStiffDemo_{}D.npz'.format(dim)
+#         logpath = '--log_path=./PASCAPE/models/Dark/Manipulate/Delayed_env/PASCAPE_10_2/NuFingers_bad{}dim_{}_log'.format(dim,seed)
 #         perturb = '--perturb=none'
 #         algdim = '--algdim={}'.format(dim)
 #         eval_env = '--eval_env=False'
@@ -176,6 +161,21 @@ for dim in [5]:
 #         finalargs = defaultargs + [savepath, demofile, logpath, perturb, algdim, eval_env, '--seed={}'.format(seed)]
         
 #         run.main(finalargs)
+        
+defaultargs = ['--alg=her','--env=CheolFingersSearch-v1', '--num_timesteps=1e5']
+for dim in [3]:
+    for seed in [10,100,1000]:
+        savepath = '--save_path=./models/Dark/Search/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
+        # loadpath = '--load_path=./models/Dark/ideal_65/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
+        demofile = '--demo_file=./PASCAPE/DarkSearchDemo_{}D.npz'.format(dim)
+        logpath = '--log_path=./models/Dark/Search/NuFingers_bad{}dim_{}_log'.format(dim,seed)
+        perturb = '--perturb=none'
+        algdim = '--algdim={}'.format(dim)
+        eval_env = '--eval_env=False'
+        
+        finalargs = defaultargs + [savepath, demofile, logpath, perturb, algdim, eval_env, '--seed={}'.format(seed)]
+        
+        run.main(finalargs)
 
 # defaultargs = ['--alg=her','--env=CheolFingersLiquid-v1', '--num_timesteps=1e5']
 # for dim in [1]:

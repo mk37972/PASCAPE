@@ -188,6 +188,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.des_mL = np.zeros([2,1])
         self.update_bool = False
         self.obj_weight = 2e3
+        self.mocap_offset = (np.random.random((2,1))-0.5) * np.pi/18.0 # domain randomization
 
         super(CheolFingersEnv, self).__init__(
             model_path=model_path, n_substeps=n_substeps, initial_qpos=initial_qpos, n_actions=n_actions)
@@ -244,34 +245,21 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.des_th[0,0] = np.clip(self.des_th[0,0] + change_th, self.lower_limit, self.upper_limit)
         # print(self.prev_stiffness, self.prev_stiffness_limit)
         # calculating desired joint positions
+        
+        r = np.array([[self.prev_stiffness],[self.max_stiffness]])
+        mocap_th = self.th + r * (self.des_th - self.th) + self.mocap_offset
         if self.eval_env == True: # right finger
-            x_r = L1 * np.cos(self.des_th[0,0] + 1*np.pi/4.0) + L2 * np.cos(self.des_th[0,0]-self.des_th[1,0] + 1*np.pi/4.0)
-            y_r = L1 * np.sin(self.des_th[0,0] + 1*np.pi/4.0) + L2 * np.sin(self.des_th[0,0]-self.des_th[1,0] + 1*np.pi/4.0)
+            x_r = L1 * np.cos(mocap_th[0,0] + 1*np.pi/4.0) + L2 * np.cos(mocap_th[0,0]-mocap_th[1,0] + 1*np.pi/4.0)
+            y_r = L1 * np.sin(mocap_th[0,0] + 1*np.pi/4.0) + L2 * np.sin(mocap_th[0,0]-mocap_th[1,0] + 1*np.pi/4.0)
             
             x_l = L1 * np.cos(0. + 3*np.pi/4.0) + L2 * np.cos(0.+ 3*np.pi/4.0)
             y_l = L1 * np.sin(0. + 3*np.pi/4.0) + L2 * np.sin(0. + 3*np.pi/4.0)
         else: # left finger
-            x_l = L1 * np.cos(self.des_th[0,0] + 3*np.pi/4.0) + L2 * np.cos(self.des_th[0,0]+self.des_th[1,0] + 3*np.pi/4.0)
-            y_l = L1 * np.sin(self.des_th[0,0] + 3*np.pi/4.0) + L2 * np.sin(self.des_th[0,0]+self.des_th[1,0] + 3*np.pi/4.0)
+            x_l = L1 * np.cos(mocap_th[0,0] + 3*np.pi/4.0) + L2 * np.cos(mocap_th[0,0]+mocap_th[1,0] + 3*np.pi/4.0)
+            y_l = L1 * np.sin(mocap_th[0,0] + 3*np.pi/4.0) + L2 * np.sin(mocap_th[0,0]+mocap_th[1,0] + 3*np.pi/4.0)
             
             x_r = L1 * np.cos(0. + 1*np.pi/4.0) + L2 * np.cos(0.+ 1*np.pi/4.0)
             y_r = L1 * np.sin(0. + 1*np.pi/4.0) + L2 * np.sin(0. + 1*np.pi/4.0)
-        
-        
-        # r = np.array([[self.prev_stiffness],[self.max_stiffness]])
-        # mocap_th = self.th + r * (self.des_th - self.th)
-        # if self.eval_env == True: # right finger
-        #     x_r = L1 * np.cos(mocap_th[0,0] + 1*np.pi/4.0) + L2 * np.cos(mocap_th[0,0]-mocap_th[1,0] + 1*np.pi/4.0)
-        #     y_r = L1 * np.sin(mocap_th[0,0] + 1*np.pi/4.0) + L2 * np.sin(mocap_th[0,0]-mocap_th[1,0] + 1*np.pi/4.0)
-            
-        #     x_l = L1 * np.cos(0. + 3*np.pi/4.0) + L2 * np.cos(0.+ 3*np.pi/4.0)
-        #     y_l = L1 * np.sin(0. + 3*np.pi/4.0) + L2 * np.sin(0. + 3*np.pi/4.0)
-        # else: # left finger
-        #     x_l = L1 * np.cos(mocap_th[0,0] + 3*np.pi/4.0) + L2 * np.cos(mocap_th[0,0]+mocap_th[1,0] + 3*np.pi/4.0)
-        #     y_l = L1 * np.sin(mocap_th[0,0] + 3*np.pi/4.0) + L2 * np.sin(mocap_th[0,0]+mocap_th[1,0] + 3*np.pi/4.0)
-            
-        #     x_r = L1 * np.cos(0. + 1*np.pi/4.0) + L2 * np.cos(0.+ 1*np.pi/4.0)
-        #     y_r = L1 * np.sin(0. + 1*np.pi/4.0) + L2 * np.sin(0. + 1*np.pi/4.0)
         
         # welding the bodies to the mocap
         new_pose_l = np.array([-y_l + 0.1, x_l - 0.0635])
@@ -482,6 +470,8 @@ class CheolFingersEnv(robot_env.RobotEnv):
         initial_pos[:2] = np.array([-(np.random.random_sample()*0.03 + 0.09) + 0.1, np.random.random_sample()*0.07+0.02 - 0.0635])
         initial_quat = ToQuaternion(np.random.random_sample()*np.pi/4-np.pi/8, 0, 0)
         initial_qpos[:3] = initial_pos
+        
+        self.mocap_offset = (np.random.random((2,1))-0.5) * np.pi/18.0 # domain randomization
         
         self.sim.data.set_joint_qpos('object:joint', initial_qpos)
         return goal
