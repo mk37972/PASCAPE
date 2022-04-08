@@ -209,7 +209,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
         # print(-(intention).astype(np.float32), -(velocity > self.vel_threshold).astype(np.float32))
         penalty = -(intention).astype(np.float32) -(velocity > self.vel_threshold).astype(np.float32) -(torque < 1e-4).astype(np.float32)
         penalty = (penalty < 0).astype(np.float32)
-        return -0.5*penalty -1.0e-3*(torque).astype(np.float32)
+        return -0.5*penalty -1.0e-1*(torque).astype(np.float32)
         
 
     # RobotEnv methods
@@ -233,8 +233,8 @@ class CheolFingersEnv(robot_env.RobotEnv):
             
             self.prev_stiffness_limit += stiffness_limit
             self.prev_stiffness_limit = np.max([np.min([self.prev_stiffness_limit, self.max_stiffness]), self.min_stiffness])
-            self.actual_stiffness = self.actual_max_stiffness * self.prev_stiffness_limit
-            self.actual_stiffness2 = self.actual_max_stiffness2 * self.prev_stiffness_limit
+            # self.actual_stiffness = self.actual_max_stiffness * self.prev_stiffness_limit
+            # self.actual_stiffness2 = self.actual_max_stiffness2 * self.prev_stiffness_limit
             
             stiffness_ctrl = 0.5 * self.max_stiffness * action[1]
             

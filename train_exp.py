@@ -165,10 +165,10 @@ import mpi4py
 defaultargs = ['--alg=her','--env=CheolFingersSearch-v1', '--num_timesteps=5e4']
 for dim in [1]:
     for seed in [10,100,1000]:
-        savepath = '--save_path=./PASCAPE/models/Dark/Search/POS/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
+        savepath = '--save_path=./PASCAPE/models/Dark/Search/POS_DR/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
         # loadpath = '--load_path=./models/Dark/ideal_65/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
         demofile = '--demo_file=./PASCAPE/DarkSearchDemo_{}D.npz'.format(dim)
-        logpath = '--log_path=./PASCAPE/models/Dark/Search/POS/NuFingers_bad{}dim_{}_log'.format(dim,seed)
+        logpath = '--log_path=./PASCAPE/models/Dark/Search/POS_DR/NuFingers_bad{}dim_{}_log'.format(dim,seed)
         perturb = '--perturb=none'
         algdim = '--algdim={}'.format(dim)
         eval_env = '--eval_env=False'
