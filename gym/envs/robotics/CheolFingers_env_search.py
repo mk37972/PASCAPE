@@ -148,7 +148,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.actual_max_stiffness2 = 1.15199e-2
         self.actual_stiffness = self.actual_max_stiffness
         self.actual_stiffness2 = self.actual_max_stiffness2
-        self.object_fragility = 4.5
+        self.object_fragility = 90.0
         self.min_grip = 0.0
         self.fric_mu = 0.7
         self.grav_const = 9.81
@@ -156,6 +156,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.prev_lforce = 0.0
         self.prev_rforce = 0.0
         self.prev_oforce = 0.0
+        self.actual_force = 0.0
         self.Rj = np.array([[initial_qpos['Joint_1_R']],[initial_qpos['Joint_2_R']]])
         self.Lj = np.array([[initial_qpos['Joint_1_L']],[initial_qpos['Joint_2_L']]])
         self.Prev_Rj = np.array([[initial_qpos['Joint_1_R']],[initial_qpos['Joint_2_R']]])
@@ -188,7 +189,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.des_mL = np.zeros([2,1])
         self.update_bool = False
         self.obj_weight = 2e3
-        self.mocap_offset = (np.random.random((2,1))-0.5) * np.pi/18.0 # domain randomization
+        self.mocap_offset = np.zeros([2,1])
 
         super(CheolFingersEnv, self).__init__(
             model_path=model_path, n_substeps=n_substeps, initial_qpos=initial_qpos, n_actions=n_actions)
@@ -199,16 +200,16 @@ class CheolFingersEnv(robot_env.RobotEnv):
     def compute_reward(self, achieved_goal, goal, info):
         try: 
             intention = np.linalg.norm(achieved_goal[:,:self.est_dim]< goal[:,:self.est_dim], axis=-1)
-            torque = np.linalg.norm((achieved_goal[:,self.est_dim:self.est_dim+self.force_dim] - goal[:,self.est_dim:self.est_dim+self.force_dim]) * (achieved_goal[:,self.est_dim:self.est_dim+self.force_dim] > 0), axis=-1)
+            torque = np.linalg.norm(achieved_goal[:,self.est_dim:self.est_dim+self.force_dim] - goal[:,self.est_dim:self.est_dim+self.force_dim], axis=-1)
             velocity = np.linalg.norm((achieved_goal[:,self.est_dim+self.force_dim:self.est_dim+self.force_dim+self.vel_dim] - goal[:,self.est_dim+self.force_dim:self.est_dim+self.force_dim+self.vel_dim]), axis=-1)
         except: 
             intention = np.linalg.norm(achieved_goal[:self.est_dim]< goal[:self.est_dim], axis=-1)
-            torque = np.linalg.norm((achieved_goal[self.est_dim:self.est_dim+self.force_dim] - goal[self.est_dim:self.est_dim+self.force_dim]) * (achieved_goal[self.est_dim:self.est_dim+self.force_dim] > 0), axis=-1)
+            torque = np.linalg.norm(achieved_goal[self.est_dim:self.est_dim+self.force_dim] - goal[self.est_dim:self.est_dim+self.force_dim], axis=-1)
             velocity = np.linalg.norm((achieved_goal[self.est_dim+self.force_dim:self.est_dim+self.force_dim+self.vel_dim] - goal[self.est_dim+self.force_dim:self.est_dim+self.force_dim+self.vel_dim]), axis=-1)
         # print(-(intention).astype(np.float32), -(velocity > self.vel_threshold).astype(np.float32))
         penalty = -(intention).astype(np.float32) -(velocity > self.vel_threshold).astype(np.float32) -(torque < 1e-4).astype(np.float32)
         penalty = (penalty < 0).astype(np.float32)
-        return -0.5*penalty -7.5e2*(torque).astype(np.float32)
+        return -0.5*penalty -1.0e-3*(torque).astype(np.float32)
         
 
     # RobotEnv methods
@@ -232,8 +233,8 @@ class CheolFingersEnv(robot_env.RobotEnv):
             
             self.prev_stiffness_limit += stiffness_limit
             self.prev_stiffness_limit = np.max([np.min([self.prev_stiffness_limit, self.max_stiffness]), self.min_stiffness])
-            # self.actual_stiffness = self.actual_max_stiffness * self.prev_stiffness_limit
-            # self.actual_stiffness2 = self.actual_max_stiffness2 * self.prev_stiffness_limit
+            self.actual_stiffness = self.actual_max_stiffness * self.prev_stiffness_limit
+            self.actual_stiffness2 = self.actual_max_stiffness2 * self.prev_stiffness_limit
             
             stiffness_ctrl = 0.5 * self.max_stiffness * action[1]
             
@@ -298,6 +299,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
             self.des_tau = max_kj_diag_R * (r * (self.des_th - self.th))
             # desired actuator positions
             self.des_mR = ((np.matrix([[1/Ksc[0,0], 0],[0, 1/Ksc[1,1]]]) * np.transpose(R_j_inv)*self.des_tau) + R_j * self.th) / Rm 
+            self.actual_force = max_kj_diag_R * (mocap_th - self.th)
         else:
             # joint space stiffness
             max_kj_L = np.transpose(R_j_L) * Ksc_L * R_j_L
@@ -306,7 +308,9 @@ class CheolFingersEnv(robot_env.RobotEnv):
             self.des_tau = max_kj_diag_L * (r * (self.des_th - self.th))
             # desired actuator positions
             self.des_mL = ((np.matrix([[1/Ksc_L[0,0], 0],[0, 1/Ksc_L[1,1]]]) * np.transpose(R_j_inv_L)*self.des_tau) + R_j_L * self.th) / Rm
-        self.prev_force = self.des_tau[0,0] if self.eval_env else -self.des_tau[0,0]
+            self.actual_force = max_kj_diag_L * (mocap_th - self.th)
+        self.prev_force = self.actual_force[0,0] if self.eval_env else -self.actual_force[0,0]
+        
         # prob = 0.005 if self.pert_type == 'delay' else -0.1
         # if np.random.random() > prob:
         #     self.sim.data.ctrl[0] = self.des_mL[0,0]
@@ -343,8 +347,8 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.vel_th[0] = self.th - self.Prev_th
         
         self.Prev_th = self.th
-        
-        if self.prev_force > 0.0003:
+        self.prev_oforce = self.sim.data.sensordata[self.sim.model.sensor_name2id('object_frc')] if self.actual_stiffness == self.actual_max_stiffness else self.prev_stiffness_limit * self.sim.data.sensordata[self.sim.model.sensor_name2id('object_frc')]
+        if self.prev_oforce > self.object_fragility:
             self.sim.model.geom_rgba[-1][0:3] = np.array([0.8000, 0., 0.2824])
         # if self.pert_type != 'none' and self.pert_type != 'meas':
         # if self.grasped_flag == 0.1: self.sim.data.qvel[self.sim.model.joint_name2id('object:joint')+1] += 0.5*(np.random.random()-0.5)
@@ -352,13 +356,13 @@ class CheolFingersEnv(robot_env.RobotEnv):
             if self.eval_env:
                 observation = np.array([self.th[0,0], 
                                         self.des_th[0,0]-self.th[0,0], self.vel_th[0,0,0],
-                                        self.des_tau[0,0], 
+                                        self.prev_force, 
                                         self.prev_stiffness, self.prev_stiffness_limit
                                         ])
             else:
                 observation = np.array([-self.th[0,0],
                                         -self.des_th[0,0]+self.th[0,0], -self.vel_th[0,0,0],
-                                        -self.des_tau[0,0],
+                                        self.prev_force,
                                         self.prev_stiffness, self.prev_stiffness_limit
                                         ])
                     
@@ -366,15 +370,15 @@ class CheolFingersEnv(robot_env.RobotEnv):
             if self.eval_env:
                 observation = np.array([self.th[0,0], 
                                         self.des_th[0,0]-self.th[0,0], self.vel_th[0,0,0],
-                                        self.des_tau[0,0],
+                                        self.prev_force,
                                         ])
             else:
                 observation = np.array([-self.th[0,0],
                                         -self.des_th[0,0]+self.th[0,0], -self.vel_th[0,0,0],
-                                        -self.des_tau[0,0],
+                                        self.prev_force,
                                         ])
         # print(observation[1:4])
-        modified_obs = dict(observation=observation, achieved_goal=np.array([observation[1],observation[3],observation[2]]), desired_goal = self.goal)
+        modified_obs = dict(observation=observation, achieved_goal=np.array([observation[1],self.prev_oforce,observation[2]]), desired_goal = self.goal)
         return modified_obs
 
     def _viewer_setup(self):
@@ -437,6 +441,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.prev_lforce = 0.0
         self.prev_rforce = 0.0
         self.prev_oforce = 0.0
+        self.actual_force = 0.0
         self.est_grasping_force = 0.0
         self.est_grasping_force_R = 0.0
         self.est_grasping_force_L = 0.0

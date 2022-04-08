@@ -5,8 +5,6 @@ import re
 import multiprocessing
 import os.path as osp
 import gym
-import mj_envs
-from mjrl.utils.gym_env import GymEnv
 from collections import defaultdict
 import tensorflow as tf
 from tfdeterminism import patch
@@ -293,7 +291,7 @@ def main(args):
                 force = -eval_env.envs[0].env.prev_force
             elif args.env == 'CheolFingersSearch-v1':
                 distance = 0.0
-                force = -eval_env.envs[0].env.des_tau[0,0]
+                force = eval_env.envs[0].env.prev_oforce
             else: 
                 distance = np.linalg.norm(obs['achieved_goal'][0][:3] - obs['desired_goal'][0][:3])
                 if args.env == 'FetchPickAndPlaceFragile-v1' or args.env == 'FetchPickAndPlaceFragile-v5':

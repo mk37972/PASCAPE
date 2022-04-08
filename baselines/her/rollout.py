@@ -123,7 +123,7 @@ class RolloutWorker:
                     Fs.append(np.abs(np.float32((o[:,7:9] * (o[:,7:9] < 0.0)).sum(axis=-1))).mean())
                     Ks.append(np.float32(self.venv.envs[0].env.prev_stiffness).mean())
                 elif self.venv.envs[0].env.spec.id == 'CheolFingersSearch-v1': # Cheol Fingers Dark Env
-                    Fs.append(np.float32(self.venv.envs[0].env.prev_force).mean())
+                    Fs.append(np.float32(self.venv.envs[0].env.prev_oforce).mean())
                     Ks.append(np.float32(self.venv.envs[0].env.prev_stiffness).mean())
                     Qs.append(np.float32(self.venv.envs[0].env.prev_stiffness_limit).mean())
                 elif self.venv.envs[0].env.spec.id == 'CheolFingersManipulate-v1': # Cheol Fingers Dark Env
@@ -175,7 +175,7 @@ class RolloutWorker:
             elif self.venv.envs[0].env.spec.id == 'NuFingersRotate-v2':
                 success2 = (np.float32(o[:,7:9].sum(axis=-1)) > -0.45)
             elif self.venv.envs[0].env.spec.id == 'CheolFingersSearch-v1':
-                success2 = (np.float32(self.venv.envs[0].env.prev_force).mean() < 0.0003)
+                success2 = (np.float32(self.venv.envs[0].env.prev_oforce).mean() < self.venv.envs[0].env.object_fragility)
             elif self.venv.envs[0].env.spec.id == 'CheolFingersManipulate-v1':
                 success2 = (np.float32(self.venv.envs[0].env.prev_force).mean() > -0.02)
             elif self.venv.envs[0].env.spec.id == 'CheolFingersLiquid-v1':

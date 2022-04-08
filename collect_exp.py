@@ -104,30 +104,30 @@ from baselines import run
 #                 run.main(finalargs)
 
         
-defaultargs = ['--alg=her','--env=CheolFingersManipulate-v1', '--num_timesteps=0', '--play']
-if __name__ == '__main__':
-    for dim in [5]:
-        for seed in [10]:
-            for pert in ['none']:
-                loadpath = '--load_path=./models/Dark/Manipulate/Delayed_env/SCAPE_10/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
-                perturb = '--perturb={}'.format(pert)
-                algdim = '--algdim={}'.format(dim)
-                eval_env = '--eval_env=True'
-                
-                finalargs = defaultargs + [loadpath, perturb, algdim, eval_env]
-                
-                run.main(finalargs)
-                
-# defaultargs = ['--alg=her','--env=CheolFingersSearch-v1', '--num_timesteps=0', '--play']
+# defaultargs = ['--alg=her','--env=CheolFingersManipulate-v1', '--num_timesteps=0', '--play']
 # if __name__ == '__main__':
-#     for dim in [3]:
+#     for dim in [5]:
 #         for seed in [10]:
 #             for pert in ['none']:
-#                 loadpath = '--load_path=./models/Dark/Search/SCAPE_heavy_penalty_low_stiffness/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
+#                 loadpath = '--load_path=./models/Dark/Manipulate/Delayed_env/SCAPE_10/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
 #                 perturb = '--perturb={}'.format(pert)
 #                 algdim = '--algdim={}'.format(dim)
-#                 eval_env = '--eval_env=False'
+#                 eval_env = '--eval_env=True'
                 
 #                 finalargs = defaultargs + [loadpath, perturb, algdim, eval_env]
                 
 #                 run.main(finalargs)
+                
+defaultargs = ['--alg=her','--env=CheolFingersSearch-v1', '--num_timesteps=0', '--play']
+if __name__ == '__main__':
+    for dim in [3]:
+        for seed in [10]:
+            for pert in ['none']:
+                loadpath = '--load_path=./models/Dark/Search/PASCAPE/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
+                perturb = '--perturb={}'.format(pert)
+                algdim = '--algdim={}'.format(dim)
+                eval_env = '--eval_env=False'
+                
+                finalargs = defaultargs + [loadpath, perturb, algdim, eval_env]
+                
+                run.main(finalargs)

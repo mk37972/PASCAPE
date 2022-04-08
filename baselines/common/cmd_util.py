@@ -9,8 +9,6 @@ except ImportError:
     MPI = None
 
 import gym
-import mj_envs
-from mjrl.utils.gym_env import GymEnv
 from gym.wrappers import FlattenObservation, FilterObservation
 from baselines import logger
 from baselines.bench import Monitor
@@ -78,8 +76,6 @@ def make_env(env_id, env_type, mpi_rank=0, subrank=0, seed=None, reward_scale=1.
         import retro
         gamestate = gamestate or retro.State.DEFAULT
         env = retro_wrappers.make_retro(game=env_id, max_episode_steps=10000, use_restricted_actions=retro.Actions.DISCRETE, state=gamestate)
-    elif env_type == 'hand_manipulation_suite':
-        env = GymEnv(env_id, **env_kwargs)
     else:
         env = gym.make(env_id, **env_kwargs)
     if flatten_dict_observations and isinstance(env.observation_space, gym.spaces.Dict):
