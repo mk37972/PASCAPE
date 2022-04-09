@@ -123,7 +123,7 @@ if __name__ == '__main__':
     for dim in [3]:
         for seed in [10]:
             for pert in ['none']:
-                loadpath = '--load_path=./PASCAPE/models/Dark/Search/PASCAPE/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
+                loadpath = '--load_path=./PASCAPE/models/Dark/Search/PASCAPE_DR/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
                 perturb = '--perturb={}'.format(pert)
                 algdim = '--algdim={}'.format(dim)
                 eval_env = '--eval_env=False'

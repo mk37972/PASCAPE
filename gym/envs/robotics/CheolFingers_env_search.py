@@ -476,7 +476,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
         initial_quat = ToQuaternion(np.random.random_sample()*np.pi/4-np.pi/8, 0, 0)
         initial_qpos[:3] = initial_pos
         
-        self.mocap_offset = (np.random.random((2,1))-0.5) * np.pi/18.0 # domain randomization
+        # self.mocap_offset = (np.random.random((2,1))-0.5) * np.pi/18.0 # domain randomization
         
         self.sim.data.set_joint_qpos('object:joint', initial_qpos)
         return goal
