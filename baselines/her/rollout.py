@@ -133,6 +133,8 @@ class RolloutWorker:
                 elif self.venv.envs[0].env.spec.id == 'CheolFingersLiquid-v1': # Cheol Fingers Dark Env
                     Fs.append(np.float32(self.venv.envs[0].env.prev_oforce).mean())
                     Ks.append(np.float32(self.venv.envs[0].env.prev_stiffness).mean())
+                    Qs.append(np.float32(self.venv.envs[0].env.prev_stiffness_limit).mean())
+                    rs.append(np.float32(self.venv.envs[0].env.obj_acc).mean())
             else: u = policy_output
             if u.ndim == 1:
                 # The non-batched case should still have a reasonable shape.
@@ -152,11 +154,12 @@ class RolloutWorker:
                 self.venv.envs[0].env.sim.data.qvel[self.venv.envs[0].env.sim.model.joint_name2id('object:joint')+2] = 0.
                 obs_dict_new, r, done, info = self.venv.step(np.zeros_like(u))
             # self.venv.render()
+            # if r>-1: print(r)
             
             o_new = obs_dict_new['observation']
             ag_new = obs_dict_new['achieved_goal']
             success = np.array([i.get('is_success', 0.0) for i in info])
-            rs.append(r.copy())
+            if self.venv.envs[0].env.spec.id != 'CheolFingersLiquid-v1': rs.append(r.copy())
             
             if self.venv.envs[0].env.spec.id == 'FetchPickAndPlaceFragile-v1': # block
                 success2 = (np.float32(o[:,11:13].sum(axis=-1))*self.venv.envs[0].env.max_stiffness*4.0 > -self.venv.envs[0].env.object_fragility)
@@ -179,7 +182,7 @@ class RolloutWorker:
             elif self.venv.envs[0].env.spec.id == 'CheolFingersManipulate-v1':
                 success2 = (np.float32(self.venv.envs[0].env.prev_force).mean() > -0.02)
             elif self.venv.envs[0].env.spec.id == 'CheolFingersLiquid-v1':
-                success2 = (np.float32(self.venv.envs[0].env.prev_oforce).mean() < 3.25)
+                success2 = (np.float32(self.venv.envs[0].env.prev_oforce).mean() < self.venv.envs[0].env.object_fragility) and (np.float32(self.venv.envs[0].env.obj_acc).mean() < 1000.)
             
             if any(done):
                 # here we assume all environments are done is ~same number of steps, so we terminate rollouts whenever any of the envs returns done
@@ -231,7 +234,7 @@ class RolloutWorker:
             self.Q_history.append(np.mean(Qs))
             self.F_history.append(np.mean(Fs))
             self.K_history.append(np.mean(Ks))
-            self.r_history.append(np.sum(rs))
+            self.r_history.append(np.sum(rs)) if self.venv.envs[0].env.spec.id != 'CheolFingersLiquid-v1' else self.r_history.append(np.mean(rs))
         self.n_episodes += self.rollout_batch_size
 
         return convert_episode_to_batch_major(episode)

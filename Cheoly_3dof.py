@@ -15,7 +15,7 @@ num_ep = 100
 lengh_ep = 50
 
 a = gym.make('CheolFingersManipulate-v1', n_actions=3, eval_env=False)
-render = 0
+render = 1
 ep = 0
 while ep < num_ep:
     print("Episode: {}".format(ep+1))

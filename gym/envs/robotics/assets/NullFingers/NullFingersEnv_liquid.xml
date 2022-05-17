@@ -35,7 +35,7 @@
     		<geom conaffinity="0" contype="0" pos="0 0 0" rgba="0 0.5 0 0." size="0.005 0.005 1" type="box"></geom>
     	</body>
         <body name="target_body" pos="-0.0327 0 0.047" quat="0.7071 0 -0.7071 0">
-            <site name="target0"  size="0.001 0.02" rgba="1 0 0 0" quat="1 0 0 0" type="cylinder"/>
+            <site name="target0"  size="0.001 0.02" rgba="1 0 0 1" quat="1 0 0 0" type="cylinder"/>
         </body>
     
 	    <light directional="false" ambient="0.2 0.2 0.2" diffuse="0.8 0.8 0.8" specular="0.3 0.3 0.3" castshadow="false" pos="0 0 0.5" dir="0 0 -1" name="light0"/>
@@ -45,7 +45,7 @@
 	    <camera name="fixed" pos="0 -0.7 0.7" quat="0.92388 0.382683 0 0" />
 	    <camera name="vil_camera" pos="0 -1.2 1.2" quat="0.92388 0.382683 0 0" />
 
-	    <body name="base_link_L" pos="0.1 -0.0635 0" quat="0 0 0 1">
+	    <body name="base_link_L" pos="0.1 -0.0625 0" quat="0 0 0 1">
 		    <geom type="mesh" contype="0" conaffinity="0" group="1" material="MatRobot" mesh="base_link_L" mass="1e7"/>
             <body name="Link_1_L" pos="0 0 0.056965" quat="0.9238795 0 0 0.3826834">
                 <inertial pos="0.025459 0.00053785 -0.010009" quat="0.00202383 0.71201 0.00236074 0.702163" mass="0.031455" diaginertia="2.00157e-05 1.9023e-05 1.19225e-06" />
@@ -65,7 +65,7 @@
 		    </body>
 	    </body>
 
-        <body name="base_link_R" pos="0.1 0.0635 0" quat="0 0 -0.707105 0.707105">
+        <body name="base_link_R" pos="0.1 0.0625 0" quat="0 0 -0.707105 0.707105">
 		    <geom type="mesh" contype="0" conaffinity="0" group="1" material="MatRobot" mesh="base_link_R"  mass="1e7"/>
 		    <body name="Link_1_R" pos="0 -0.056965 0" quat="0.6532815 0.6532815 0.2705981 -0.2705981">
                 <inertial pos="0.0358579 -0.000463775 -0.0104944" quat="-0.00041782 0.712306 -0.00336893 0.701861" mass="0.0365558" diaginertia="1.78743e-05 1.68084e-05 1.28297e-06" />
@@ -86,23 +86,43 @@
 	    </body>
 	    
 	    <body name="object" pos="-0.01 -0.03 -0.02">
-    	    <geom name="object_bottom" type="box" size="0.02 0.02 0.045" mass="1e3" rgba="0.4118 0.6941 0.8941 0.1"/>
-    	    <joint name="object:joint" type="free" damping="0.01"></joint>
+    	    <geom name="object_bottom" type="box" size="0.02 0.015 0.05" mass="1e-1" rgba="0.4118 0.6941 0.8941 0.1"/>
+    	    <joint name="object:joint" type="free" damping="1e-1"></joint>
     	    <body name="object2" pos="0.0 0.0 0.055">
- 			<geom pos="0 0 -0.018" size="0.02 0.02 0.002" type="box" condim="6" name="object2_wall1" material="MatObject" mass="0.025"></geom>
- 			<geom pos="0 0 0.018" size="0.02 0.02 0.002" type="box" condim="6" name="object2_wall2" material="MatObject" mass="0.025"></geom>
- 			<geom pos="0 0.018 0" size="0.02 0.002 0.02" type="box" condim="6" name="object2_wall3" material="MatObject" mass="0.025"></geom>
- 			<geom pos="0 -0.018 0" size="0.02 0.002 0.02" type="box" condim="6" name="object2_wall4" material="MatObject" mass="0.025"></geom>
- 			<site name="spring_end1" pos="0 -0.015 0" size="0.001" rgba="1 0 0 1"/>
- 			<site name="spring_end2" pos="0 0.015 0" size="0.001" rgba="1 0 0 1"/>
-     			<body name="object3" pos="0 0 0">
-         			<geom pos="0 0 0" size="0.0025" type="sphere" condim="3" name="liquid" rgba="0.4118 0.6941 0.8941 1" mass="0.1"></geom>
-         			<joint name="object3:joint" type="slide" axis="0 1 0" damping="1e0"></joint>
-         			<site name="object3" pos="0 0 0" size="0.001" rgba="0.4118 0.6941 0.8941 0.1"/>
-         		</body>
-         	    <site name="object_site" type="box" size="0.021 0.021 0.01" pos="0 0 -0.0" rgba="0.2 0.5 0.2 0"/>
+     			<geom pos="0 0 -0.018" size="0.02 0.015 0.002" type="box" condim="6" name="object2_wall1" material="MatObject" mass="0.025"></geom>
+     			<geom pos="0 0 0.018" size="0.02 0.015 0.002" type="box" condim="6" name="object2_wall2" material="MatObject" mass="0.025"></geom>
+     			<geom pos="0 0.013 0" size="0.02 0.002 0.02" type="box" condim="6" name="object2_wall3" material="MatObject" mass="0.025"></geom>
+     			<geom pos="0 -0.013 0" size="0.02 0.002 0.02" type="box" condim="6" name="object2_wall4" material="MatObject" mass="0.025"></geom>
+     			<site name="spring_end1" pos="0 -0.015 0" size="0.001" rgba="1 0 0 1"/>
+     			<site name="spring_end2" pos="0 0.015 0" size="0.001" rgba="1 0 0 1"/>
+         			<body name="object3" pos="0 0 0">
+             			<geom pos="0 0 0" size="0.0025" type="sphere" condim="3" name="liquid" rgba="0.4118 0.6941 0.8941 1" mass="0.1"></geom>
+             			<joint name="object3:joint" type="slide" axis="0 1 0" damping="1e0"></joint>
+             			<site name="object3" pos="0 0 0" size="0.001" rgba="0.4118 0.6941 0.8941 0.1"/>
+             		</body>
+         	    <site name="object_site" type="box" size="0.021 0.021 0.02" pos="0 0 -0.0" rgba="0.2 0.5 0.2 0."/>
         	</body>
 	    </body>
+	    
+	    
+	    <!--body name="object" pos="-0.01 -0.03 -0.02">
+    	    <geom name="object_bottom" type="box" size="0.01 0.01 0.055" mass="1e-1" rgba="0.4118 0.6941 0.8941 0.1"/>
+    	    <joint name="object:joint" type="free" damping="1e-1"></joint>
+    	    <body name="object2" pos="0.0 0.0 0.065">
+     			<geom pos="0 0 -0.008" size="0.01 0.01 0.002" type="box" condim="6" name="object2_wall1" material="MatObject" mass="0.025"></geom>
+     			<geom pos="0 0 0.008" size="0.01 0.01 0.002" type="box" condim="6" name="object2_wall2" material="MatObject" mass="0.025"></geom>
+     			<geom pos="0 0.008 0" size="0.01 0.002 0.01" type="box" condim="6" name="object2_wall3" material="MatObject" mass="0.025"></geom>
+     			<geom pos="0 -0.008 0" size="0.01 0.002 0.01" type="box" condim="6" name="object2_wall4" material="MatObject" mass="0.025"></geom>
+     			<site name="spring_end1" pos="0 -0.01 0" size="0.001" rgba="1 0 0 1"/>
+     			<site name="spring_end2" pos="0 0.01 0" size="0.001" rgba="1 0 0 1"/>
+         			<body name="object3" pos="0 0 0">
+             			<geom pos="0 0 0" size="0.0025" type="sphere" condim="3" name="liquid" rgba="0.4118 0.6941 0.8941 1" mass="0.1"></geom>
+             			<joint name="object3:joint" type="slide" axis="0 1 0" damping="1e0"></joint>
+             			<site name="object3" pos="0 0 0" size="0.001" rgba="0.4118 0.6941 0.8941 0.1"/>
+             		</body>
+         	    <site name="object_site" type="box" size="0.021 0.021 0.02" pos="0 0 -0.0" rgba="0.2 0.5 0.2 0."/>
+        	</body>
+	    </body-->
 	    
         <body name="debug_body" pos="0.0 0 0.047" quat="0.7071 0 -0.7071 0">
             <site name="debug"  size="0.002 0.028" rgba="1 0 0 0" quat="1 0 0 0" type="cylinder"/>

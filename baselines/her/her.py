@@ -176,9 +176,9 @@ def learn(*, network, env, total_timesteps,
         params['bc_loss'] = 1
         params['q_filter'] = 1
         params['n_cycles'] = 20
-        params['random_eps'] = 0.1 # chip,block: 0.1
-        params['noise_eps'] = 0.1 # chip,block: 0.1
-        params['demo_batch_size'] = 128
+        params['random_eps'] = 0.2 # chip,block: 0.1
+        params['noise_eps'] = 0.3 # chip,block: 0.1
+        params['demo_batch_size'] = 32
         params['batch_size']: 256
     params = config.prepare_params(params)
     params['rollout_batch_size'] = 1

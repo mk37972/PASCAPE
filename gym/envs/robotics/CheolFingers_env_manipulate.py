@@ -454,7 +454,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
                 # self.sim.data.qvel[self.sim.model.joint_name2id('object:joint')+1] += 0.5*(np.random.random()-0.5)
 
         if self.p[0,0] > 0.025 and object_frc > self.min_grip/2. and self.prev_lforce > 0.0 and self.prev_rforce > 0.0:
-             self.sim.model.geom_size[self.sim.model.geom_name2id('object_bottom'),2] = 0.005
+             self.sim.model.geom_size[self.sim.model.geom_name2id('object_bottom'),2] = 0.045
         else:
              self.sim.model.geom_size[self.sim.model.geom_name2id('object_bottom'),2] = 0.05
             

@@ -292,6 +292,9 @@ def main(args):
             elif args.env == 'CheolFingersSearch-v1':
                 distance = 0.0
                 force = eval_env.envs[0].env.prev_oforce
+            elif args.env == 'CheolFingersLiquid-v1':
+                distance = eval_env.envs[0].env.obj_acc
+                force = eval_env.envs[0].env.prev_oforce
             else: 
                 distance = np.linalg.norm(obs['achieved_goal'][0][:3] - obs['desired_goal'][0][:3])
                 if args.env == 'FetchPickAndPlaceFragile-v1' or args.env == 'FetchPickAndPlaceFragile-v5':
@@ -312,7 +315,7 @@ def main(args):
             if args.filename is None: eval_env.render()
             done_any = done.any() if isinstance(done, np.ndarray) else done
             if force > max_force: max_force = force
-            # if acc > max_acc: max_acc = acc
+            if distance > max_acc: max_acc = distance
             
             episodeFor.append(force)
             episodeDis.append(distance)

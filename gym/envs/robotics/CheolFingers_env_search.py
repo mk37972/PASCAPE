@@ -190,6 +190,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.update_bool = False
         self.obj_weight = 2e3
         self.mocap_offset = np.zeros([2,1])
+        self.DR = True
 
         super(CheolFingersEnv, self).__init__(
             model_path=model_path, n_substeps=n_substeps, initial_qpos=initial_qpos, n_actions=n_actions)
@@ -233,8 +234,8 @@ class CheolFingersEnv(robot_env.RobotEnv):
             
             self.prev_stiffness_limit += stiffness_limit
             self.prev_stiffness_limit = np.max([np.min([self.prev_stiffness_limit, self.max_stiffness]), self.min_stiffness])
-            # self.actual_stiffness = self.actual_max_stiffness * self.prev_stiffness_limit
-            # self.actual_stiffness2 = self.actual_max_stiffness2 * self.prev_stiffness_limit
+            self.actual_stiffness = self.actual_max_stiffness * self.prev_stiffness_limit
+            self.actual_stiffness2 = self.actual_max_stiffness2 * self.prev_stiffness_limit
             
             stiffness_ctrl = 0.5 * self.max_stiffness * action[1]
             
@@ -476,7 +477,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
         initial_quat = ToQuaternion(np.random.random_sample()*np.pi/4-np.pi/8, 0, 0)
         initial_qpos[:3] = initial_pos
         
-        # self.mocap_offset = (np.random.random((2,1))-0.5) * np.pi/18.0 # domain randomization
+        if self.DR: self.mocap_offset = (np.random.random((2,1))-0.5) * np.pi/18.0 # domain randomization
         
         self.sim.data.set_joint_qpos('object:joint', initial_qpos)
         return goal

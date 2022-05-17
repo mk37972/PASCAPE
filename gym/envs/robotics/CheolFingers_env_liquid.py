@@ -148,7 +148,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.actual_max_stiffness2 = 1.15199e-2
         self.actual_stiffness = self.actual_max_stiffness
         self.actual_stiffness2 = self.actual_max_stiffness2
-        self.object_fragility = 250. # 150.0 without DR 
+        self.object_fragility = 200.
         self.min_grip = 0.0
         self.fric_mu = 0.7
         self.grav_const = 9.81
@@ -182,29 +182,21 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.update_threshold = np.linalg.norm(np.ones((1,n_actions))*(self.update_step-2)*1e-6)
         self.eval_env = eval_env
         self.est_dim = 4
-        self.force_dim = 1
+        self.force_dim = 3
         self.vel_dim = 4
         self.flag_dim = 1
         self.vel_R = np.zeros([3,2,1])
         self.vel_L = np.zeros([3,2,1])
         self.des_tau = np.zeros([4,1])
         self.est_obj_pose_init = np.zeros([2,1])
-        self.est_obj_pose = np.zeros([2,1])
-        self.est_grasping_force = 0.0
-        self.est_grasping_force_L = 0.0
-        self.est_grasping_force_R = 0.0
-        self.est_torques_R = np.zeros([2,1])
-        self.est_torques_L = np.zeros([2,1])
-        self.max_grasping_force = 0.0
-        self.max_ext_torques_L = 0.0
-        self.max_ext_torques_R = 0.0
-        self.max_vel_L = 0.0
-        self.max_vel_R = 0.0
+        self.est_obj_pose = np.zeros([3,1])
+        self.obj_acc = 0.0
         self.des_mR = np.zeros([2,1])
         self.des_mL = np.zeros([2,1])
         self.update_bool = False
         self.obj_weight = 2e-1
         self.mocap_offset = np.zeros(2)
+        self.DR = True
 
         super(CheolFingersEnv, self).__init__(
             model_path=model_path, n_substeps=n_substeps, initial_qpos=initial_qpos, n_actions=n_actions)
@@ -224,7 +216,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
             vel_rew = np.linalg.norm((achieved_goal[self.est_dim+self.force_dim:self.est_dim+self.force_dim+self.vel_dim] - goal[self.est_dim+self.force_dim:self.est_dim+self.force_dim+self.vel_dim]), axis=-1)
             # flag_rew = np.linalg.norm((achieved_goal[self.est_dim+self.force_dim+self.vel_dim:self.est_dim+self.force_dim+self.vel_dim+self.flag_dim] - goal[self.est_dim+self.force_dim+self.vel_dim:self.est_dim+self.force_dim+self.vel_dim+self.flag_dim]), axis=-1)
         # force reward = 2e-3 without DR 2e-5 with DR 
-        return -(est_dist > self.distance_threshold).astype(np.float32) - 2e-4*force_rew - 1e-1*vel_rew #- 1.*flag_rew
+        return -(est_dist > self.distance_threshold).astype(np.float32) - 2e-3*force_rew - 1e-1*vel_rew #- 1.*flag_rew
         
 
     # RobotEnv methods
@@ -288,8 +280,8 @@ class CheolFingersEnv(robot_env.RobotEnv):
         # des_joint2_r = 2*np.arctan(((- L1**2 + 2*L1*L2 - L2**2 + x_r**2 + y**2)*(L1**2 + 2*L1*L2 + L2**2 - x_r**2 - y**2))**(1/2)/(- L1**2 + 2*L1*L2 - L2**2 + x_r**2 + y**2))
         
         # welding the bodies to the mocap
-        new_pose_l = np.array([-y + 0.1, x_l - 0.0635 + self.mocap_offset[0]])
-        new_pose_r = np.array([-y + 0.1, x_r - 0.0635 + self.mocap_offset[1]])
+        new_pose_l = np.array([-y + 0.1, x_l - 0.0625 + self.mocap_offset[0]])
+        new_pose_r = np.array([-y + 0.1, x_r - 0.0625 + self.mocap_offset[1]])
         new_pose = np.array([new_pose_l, new_pose_r])
         
         for eq_type, obj1_id, obj2_id in zip(self.sim.model.eq_type,
@@ -354,14 +346,6 @@ class CheolFingersEnv(robot_env.RobotEnv):
         
         # desired Cartesian space force
         des_F = np.transpose(Jp) * self.des_Fp
-        # if action[0]*1e6 == (self.update_step-2): 
-        #     self.update_bool = True
-        # elif np.linalg.norm(action) > self.update_threshold:
-        #     self.max_grasping_force = 0.0
-        #     self.max_ext_torques_L = 0.0
-        #     self.max_ext_torques_R = 0.0
-        #     self.max_vel_L = 0.0
-        #     self.max_vel_R = 0.0
             
         # desired joint space torque
         self.des_tau = np.transpose(J) * des_F
@@ -413,9 +397,9 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.P_R = np.array([xR, yR])
         self.P_L = np.array([xL, yL])
         
-        self.Prel = self.P_R - self.P_L + np.array([0.127, 0])
+        self.Prel = self.P_R - self.P_L + np.array([0.125, 0])
         l = np.sqrt(self.Prel[0]*self.Prel[0] + self.Prel[1]*self.Prel[1])
-        self.p = np.array([[l],[(xR+xL+0.127)/2],[(yR+yL)/2]])
+        self.p = np.array([[l],[(xR+xL+0.125)/2],[(yR+yL)/2]])
         self.vel_p = self.p - self.Prev_p
         
         self.Prev_Rj = self.Rj
@@ -425,33 +409,22 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.prev_force = self.prev_force + (self.des_Fp[0,0] - self.prev_force) * dt / 0.5
         self.prev_lforce = self.prev_lforce + (self.sim.data.sensordata[self.sim.model.sensor_name2id('fingertip_l')] - self.prev_lforce) * dt / 0.5
         self.prev_rforce = self.prev_rforce + (self.sim.data.sensordata[self.sim.model.sensor_name2id('fingertip_r')] - self.prev_rforce) * dt / 0.5
-        # self.prev_oforce = self.prev_oforce + (self.sim.data.sensordata[self.sim.model.sensor_name2id('object_frc')] - self.prev_oforce) * dt / 0.5
             
         self.sim.model.body_quat[self.sim.model.body_name2id('debug_body')] = ToQuaternion(0, -np.pi/2.0, np.pi/2.0)
-        self.sim.model.body_pos[self.sim.model.body_name2id('debug_body'),0:2] = np.array([-self.p[2,0] + 0.1, self.p[1,0] - 0.0635])
+        self.sim.model.body_pos[self.sim.model.body_name2id('debug_body'),0:2] = np.array([-self.p[2,0] + 0.1, self.p[1,0] - 0.0625])
         self.sim.model.site_size[self.sim.model.site_name2id('debug'),1] = self.p[0,0]/2.0
         
-        # if self.pert_type != 'none' and self.pert_type != 'meas':
-        # if self.grasped_flag == 0.1: self.sim.data.qvel[self.sim.model.joint_name2id('object:joint')+1] += 0.5*(np.random.random()-0.5)
-        
         object_pos = self.sim.data.get_body_xpos('object2').copy()
-        object_pos_frame = np.array([[object_pos[1]+0.0635], [-(object_pos[0]-0.1)], [object_pos[2]]])
+        object_pos_frame = np.array([[object_pos[1]+0.0625], [-(object_pos[0]-0.1)], [object_pos[2]]])
+        self.est_obj_pose = object_pos_frame + np.concatenate(((np.random.random(2)-0.5)*0.01,[0.])).reshape(-1,1) if self.DR and np.linalg.norm(object_pos_frame - self.goal[:3]) > 0.02 else object_pos_frame
+        
         self.prev_oforce = self.sim.data.sensordata[self.sim.model.sensor_name2id('object_frc')] if self.actual_stiffness == self.actual_max_stiffness else self.prev_stiffness_limit * self.sim.data.sensordata[self.sim.model.sensor_name2id('object_frc')]
         object_ori = ToRPY(self.sim.data.get_joint_qpos('object:joint')[3:].copy())[1]
-        # print(self.prev_force, object_frc)
-        # Is object within grasp?
-        # print(self.prev_force)
-        if self.eval_env == True:
-            if self.prev_force < -0.001 and np.linalg.norm(self.vel_p[0,0]) < 1e-2 and self.p[0,0] > 0.025 and self.p[0,0] < 0.12:
-                self.est_obj_pose = self.p[1:3].copy()# + np.array([[0.],[0.005]])
-                # self.sim.data.qvel[self.sim.model.joint_name2id('object:joint')+1] += 0.5*(np.random.random()-0.5)
-        else:
-            if self.p[0,0] > 0.025 and self.p[0,0] < 0.12 and self.prev_oforce > self.min_grip/2. and self.prev_lforce > 0.0 and self.prev_rforce > 0.0:# and l_finger_force * r_finger_force == 0.):
-                self.est_obj_pose = self.p[1:3].copy()
-                # self.sim.data.qvel[self.sim.model.joint_name2id('object:joint')+1] += 0.5*(np.random.random()-0.5)
-
+        self.obj_acc = self.sim.data.qacc[self.sim.model.joint_name2id('object3:joint')] * 500 if self.actual_stiffness == self.actual_max_stiffness else self.prev_stiffness_limit * self.sim.data.qacc[self.sim.model.joint_name2id('object3:joint')] * 500
+        
         if self.p[0,0] > 0.025 and self.prev_oforce > self.min_grip/2. and self.prev_lforce > 0.0 and self.prev_rforce > 0.0:
              self.sim.model.geom_size[self.sim.model.geom_name2id('object_bottom'),2] = 0.045
+             if self.DR and np.linalg.norm(object_pos_frame - self.goal[:3]) > 0.02: self.sim.data.qvel[self.sim.model.joint_name2id('object:joint')+1] += 0.5*(np.random.random()-0.5)
         else:
              self.sim.model.geom_size[self.sim.model.geom_name2id('object_bottom'),2] = 0.05
             
@@ -478,7 +451,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
         
         modified_obs = dict(observation=observation, 
                             achieved_goal=np.array([object_pos_frame[0,0], object_pos_frame[1,0], object_pos_frame[2,0], 0.5 * object_ori, # 0.5 for NoDR
-                                                    self.prev_oforce, 
+                                                    self.prev_oforce, 0.5 * object_ori, self.obj_acc, 
                                                     self.vel_L[0,0,0], self.vel_L[1,0,0], self.vel_R[0,0,0], self.vel_R[1,0,0]]), 
                             desired_goal = self.goal)
         return modified_obs
@@ -490,7 +463,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
 
     def _render_callback(self):
         # Visualize target.
-        self.sim.model.body_pos[self.sim.model.body_name2id('target_body'), 0:2] = np.array([-self.goal[1] + 0.1, self.goal[0] - 0.0635])
+        self.sim.model.body_pos[self.sim.model.body_name2id('target_body'), 0:2] = np.array([-self.goal[1] + 0.1, self.goal[0] - 0.0625])
         self.sim.model.body_quat[self.sim.model.body_name2id('target_body')] = ToQuaternion(0, -np.pi/2.0, 0)
         
         self.sim.forward()
@@ -510,25 +483,19 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.P_R = np.array([L1 * np.cos(self.Rj[0,0] + 1*np.pi/4.0) + L2 * np.cos(self.Rj[0,0]-self.Rj[1,0] + 1*np.pi/4.0), L1 * np.sin(self.Rj[0,0] + 1*np.pi/4.0) + L2 * np.sin(self.Rj[0,0]-self.Rj[1,0] + 1*np.pi/4.0)])
         self.P_L = np.array([L1 * np.cos(self.Lj[0,0] + 3*np.pi/4.0) + L2 * np.cos(self.Lj[0,0]+self.Lj[1,0] + 3*np.pi/4.0), L1 * np.sin(self.Lj[0,0] + 3*np.pi/4.0) + L2 * np.sin(self.Lj[0,0]+self.Lj[1,0] + 3*np.pi/4.0)])
         
-        self.Prel = self.P_R - self.P_L + np.array([0.127, 0])
-        self.p = np.array([[0.16],[0.0635],[0.1]])
-        self.des_p = np.array([[0.16],[0.0635],[0.1]])
+        self.Prel = self.P_R - self.P_L + np.array([0.125, 0])
+        self.p = np.array([[0.16],[0.0625],[0.1]])
+        self.des_p = np.array([[0.16],[0.0625],[0.1]])
         self.des_Fp = np.array([[0.],[0.],[0.]])
         # print(self.p)
         
         self.Prev_p = self.p.copy()
         self.vel_p = self.p - self.Prev_p
-        self.Pc = np.array([(self.P_R[0]+self.P_L[0]+0.127)/2,(self.P_R[1]+self.P_L[1])/2])
+        self.Pc = np.array([(self.P_R[0]+self.P_L[0]+0.125)/2,(self.P_R[1]+self.P_L[1])/2])
         
         self.joint_pos = np.concatenate([self.Lj, self.Rj])
         self.joint_pos[3,0] = -self.joint_pos[3,0]
-        self.est_obj_pose = np.zeros([2,1])
-        self.est_grasping_force = 0.0
-        self.max_grasping_force = 0.0
-        self.max_ext_torques_L = 0.0
-        self.max_ext_torques_R = 0.0
-        self.max_vel_L = 0.0
-        self.max_vel_R = 0.0
+        self.est_obj_pose = np.zeros([3,1])
         
         # reset stiffness
         self.prev_stiffness = 0.8
@@ -556,20 +523,13 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.est_grasping_force = 0.0
         self.est_grasping_force_R = 0.0
         self.est_grasping_force_L = 0.0
-        
-        # reset flags
-        self.grasped_flag = 0
-        self.location_flag_l = 0
-        self.location_flag_r = 0
-        self.location_flag = 0
-        self.obj_fallen = 0
-        self.update_bool = False
+        self.obj_acc = 0.0
         
         # minimum grip force
         self.min_grip = 9.81*(self.obj_weight * 1.5)/0.5
         self.sim.model.geom_size[self.sim.model.geom_name2id('object_bottom'),2] = 0.05
-        self.sim.model.body_mass[self.sim.model.body_name2id('object')] = self.obj_weight/2.0
-        self.sim.model.body_mass[self.sim.model.body_name2id('object2')] = self.obj_weight
+        # self.sim.model.body_mass[self.sim.model.body_name2id('object')] = self.obj_weight/2.0
+        # self.sim.model.body_mass[self.sim.model.body_name2id('object2')] = self.obj_weight
         
         # reset values
         self.vel_R = np.zeros([3,2,1])
@@ -579,46 +539,22 @@ class CheolFingersEnv(robot_env.RobotEnv):
         return True
 
     def _sample_goal(self):
-        goal = np.array([np.random.random_sample()*0.07+0.02, np.random.random_sample()*0.03+0.09, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        goal = np.array([np.random.random_sample()*0.05+0.05, np.random.random_sample()*0.03+0.06, 0.06, 0.0, 0.0,0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         
         initial_qpos = self.sim.data.get_joint_qpos('object:joint').copy()
         initial_pos, initial_quat = initial_qpos[:3], initial_qpos[3:]
-        initial_pos[:2] = np.array([-(np.random.random_sample()*0.03+0.09) + 0.1, np.random.random_sample()*0.07+0.02 - 0.0635])
+        obj_location = np.array([np.random.random_sample()*0.05+0.0, np.random.random_sample()*0.03+0.12])
+        while(abs(obj_location[1] - goal[1]) < 0.05 and abs(obj_location[0] - goal[0]) < 0.05):
+            obj_location = np.array([np.random.random_sample()*0.05+0.0, np.random.random_sample()*0.03+0.12])
+        initial_pos[:2] = np.array([-obj_location[1] + 0.1, obj_location[0] - 0.0625])
         # initial_quat = ToQuaternion(np.random.random_sample()*np.pi/4-np.pi/8, 0, 0)
         initial_qpos[:3] = initial_pos
         # initial_qpos[3:] = initial_quat
         
         self.sim.data.set_joint_qpos('object:joint', initial_qpos)
-        self.est_obj_pose = np.array([[initial_qpos[1]+0.0635], [-(initial_qpos[0]-0.1)]])
         
-        self.est_obj_pose += np.array([[(np.random.random_sample()-0.5)*0.02], [(np.random.random_sample()-0.5)*0.02]])
-        self.sim.model.geom_size[self.sim.model.geom_name2id('object_top'),1] = 0.01 + (np.random.random_sample())*0.01
-        self.mocap_offset = (np.random.random(2)-0.5) * 0.01 # domain randomization
-        # self.sim.model.site_size[self.sim.model.site_name2id('object_site'),1] = self.sim.model.geom_size[self.sim.model.geom_name2id('object_top'),0] + 0.005
-        # self.sim.model.body_mass[self.sim.model.body_name2id('object2')] = np.random.random_sample()*0.05 + 0.1
-        # domain randomization
-        # random_initial_r1 = np.pi/4.0 + (np.random.random()-0.5)* np.pi/36.0
-        # new_quat = ToQuaternion(0, random_initial_r1, np.pi/2)
-        # self.sim.model.body_quat[self.sim.model.body_name2id('Link_1_R')] = new_quat.copy()
-        # random_initial_l1 = np.pi/4.0 + (np.random.random()-0.5)* np.pi/36.0
-        # new_quat = ToQuaternion(random_initial_l1, 0, 0)
-        # self.sim.model.body_quat[self.sim.model.body_name2id('Link_1_L')] = new_quat.copy()
+        if self.DR: self.mocap_offset = (np.random.random(2)-0.5) * 0.01 # domain randomization
         
-        # random_initial_r2 = (np.random.random()-0.5)* np.pi/36.0
-        # new_quat = ToQuaternion(random_initial_r2, 0, 0)
-        # self.sim.model.body_quat[self.sim.model.body_name2id('Link_2_R')] = new_quat.copy()
-        # random_initial_l2 = (np.random.random()-0.5)* np.pi/36.0
-        # new_quat = ToQuaternion(random_initial_l2, 0, 0)
-        # self.sim.model.body_quat[self.sim.model.body_name2id('Link_2_L')] = new_quat.copy()
-        
-        
-        
-        
-        # self.sim.data.ctrl[0] = 0.14097741
-        # self.sim.data.ctrl[1] = -1.79383202
-        # self.sim.data.ctrl[2] = -0.14176121
-        # self.sim.data.ctrl[3] = -1.79471042   
-        # return np.concatenate([goal.copy(), np.concatenate([np.zeros(self.velest_dim), [0.0, 0.0]])])
         return goal
 
     def _is_success(self, achieved_goal, desired_goal):

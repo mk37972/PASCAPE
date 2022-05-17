@@ -45,7 +45,7 @@
 	    <camera name="fixed" pos="0 -0.7 0.7" quat="0.92388 0.382683 0 0" />
 	    <camera name="vil_camera" pos="0 -1.2 1.2" quat="0.92388 0.382683 0 0" />
 
-	    <body name="base_link_L" pos="0.1 -0.0635 0" quat="0 0 0 1">
+	    <body name="base_link_L" pos="0.1 -0.0625 0" quat="0 0 0 1">
 		    <geom type="mesh" contype="0" conaffinity="0" group="1" material="MatRobot" mesh="base_link_L" mass="1e7"/>
             <body name="Link_1_L" pos="0 0 0.056965" quat="0.9238795 0 0 0.3826834">
                 <inertial pos="0.025459 0.00053785 -0.010009" quat="0.00202383 0.71201 0.00236074 0.702163" mass="0.031455" diaginertia="2.00157e-05 1.9023e-05 1.19225e-06" />
@@ -65,7 +65,7 @@
 		    </body>
 	    </body>
 
-        <body name="base_link_R" pos="0.1 0.0635 0" quat="0 0 -0.707105 0.707105">
+        <body name="base_link_R" pos="0.1 0.0625 0" quat="0 0 -0.707105 0.707105">
 		    <geom type="mesh" contype="0" conaffinity="0" group="1" material="MatRobot" mesh="base_link_R"  mass="1e7"/>
 		    <body name="Link_1_R" pos="0 -0.056965 0" quat="0.6532815 0.6532815 0.2705981 -0.2705981">
                 <inertial pos="0.0358579 -0.000463775 -0.0104944" quat="-0.00041782 0.712306 -0.00336893 0.701861" mass="0.0365558" diaginertia="1.78743e-05 1.68084e-05 1.28297e-06" />
