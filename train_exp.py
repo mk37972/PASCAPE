@@ -177,8 +177,8 @@ import mpi4py
         
 #         run.main(finalargs)
 
-defaultargs = ['--alg=her','--env=CheolFingersLiquid-v1', '--num_timesteps=4e5']
-for dim in [5]:
+defaultargs = ['--alg=her','--env=CheolFingersLiquid-v1', '--num_timesteps=2e5']
+for dim in [6]:
     for seed in [10,100,1000]:
         savepath = '--save_path=./PASCAPE/models/Liquid/Scratch_DR/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
         # loadpath = '--load_path=./models/Dark/ideal_65/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)

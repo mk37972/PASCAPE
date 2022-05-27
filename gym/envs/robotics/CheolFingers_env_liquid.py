@@ -116,7 +116,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
 
     def __init__(
         self, model_path, n_substeps, target_range,
-        distance_threshold, initial_qpos, reward_type, pert_type='none', n_actions=3, eval_env=False
+        distance_threshold, initial_qpos, reward_type, pert_type='none', n_actions=4, eval_env=False
     ):
         """Initializes a new Fetch environment.
 
@@ -134,6 +134,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
             initial_qpos (dict): a dictionary of joint names and values that define the initial configuration
             reward_type ('sparse' or 'dense'): the reward type, i.e. sparse or dense
         """
+        
         self.model_path = model_path
         self.target_range = target_range
         self.distance_threshold = distance_threshold
@@ -141,14 +142,14 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.broken_table = False
         self.broken_object = False
         self.max_stiffness = 0.8
-        self.min_stiffness = 0.1
+        self.min_stiffness = 0.2
         self.prev_stiffness = 0.8
         self.prev_stiffness_limit = 0.8
         self.actual_max_stiffness = 2.30399e-2
         self.actual_max_stiffness2 = 1.15199e-2
         self.actual_stiffness = self.actual_max_stiffness
         self.actual_stiffness2 = self.actual_max_stiffness2
-        self.object_fragility = 200.
+        self.object_fragility = 100. # 150.0 without DR 
         self.min_grip = 0.0
         self.fric_mu = 0.7
         self.grav_const = 9.81
@@ -157,9 +158,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.prev_rforce = 0.0
         self.prev_oforce = 0.0
         self.previous_input = 0
-        self.remaining_timestep = 75
-        self.des_Fp_R = np.array([[0.0],[0.0]])
-        self.des_Fp_L = np.array([[0.0],[0.0]])
+        
         self.des_Fp = np.array([[0.0],[0.0],[0.0],[0.0]])
         self.Rj = np.array([[initial_qpos['Joint_1_R']],[initial_qpos['Joint_2_R']]])
         self.Lj = np.array([[initial_qpos['Joint_1_L']],[initial_qpos['Joint_2_L']]])
@@ -169,33 +168,29 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.P_R = np.array([L1 * np.cos(self.Rj[0,0] + 3*np.pi/4.0) + L2 * np.cos(self.Rj[0,0]-self.Rj[1,0] + 3*np.pi/4.0), L1 * np.sin(self.Rj[0,0] + 3*np.pi/4.0) + L2 * np.sin(self.Rj[0,0]-self.Rj[1,0] + 3*np.pi/4.0)])
         self.P_L = np.array([L1 * np.cos(self.Lj[0,0] + 3*np.pi/4.0) + L2 * np.cos(self.Lj[0,0]+self.Lj[1,0] + 3*np.pi/4.0), L1 * np.sin(self.Lj[0,0] + 3*np.pi/4.0) + L2 * np.sin(self.Lj[0,0]+self.Lj[1,0] + 3*np.pi/4.0)])
         self.joint_pos = np.zeros([4,1])
-        self.p = np.array([[0.],[0.],[0.]])
-        self.des_p = np.array([[0.],[0.],[0.]])
+        
+        self.p = np.array([[0.],[0.],[0.],[0.]])
+        self.des_p = np.array([[0.],[0.],[0.],[0.]])
         self.Prev_p = self.p
         self.vel_p = self.p - self.Prev_p
-        self.des_Fp = np.array([[0.],[0.],[0.]])
-        self.lower_limit = np.array([[-0.02],[0.02],[0.08]])
-        self.upper_limit = np.array([[0.40],[0.09],[0.14]])
+        self.des_Fp = np.array([[0.],[0.],[0.],[0.]])
+        self.lower_limit = np.array([[-0.02],[0.0],[0.08],[-1.57]])
+        self.upper_limit = np.array([[0.40],[0.125],[0.14],[1.57]])
         self.pert_type = pert_type
         self.n_actions = n_actions
-        self.update_step = 5.0
-        self.update_threshold = np.linalg.norm(np.ones((1,n_actions))*(self.update_step-2)*1e-6)
+        
         self.eval_env = eval_env
         self.est_dim = 4
-        self.force_dim = 3
+        self.force_dim = 2
         self.vel_dim = 4
-        self.flag_dim = 1
+        
         self.vel_R = np.zeros([3,2,1])
         self.vel_L = np.zeros([3,2,1])
         self.des_tau = np.zeros([4,1])
-        self.est_obj_pose_init = np.zeros([2,1])
-        self.est_obj_pose = np.zeros([3,1])
-        self.obj_acc = 0.0
-        self.des_mR = np.zeros([2,1])
-        self.des_mL = np.zeros([2,1])
-        self.update_bool = False
+        
+        self.est_obj_pose = np.zeros([2,1])
         self.obj_weight = 2e-1
-        self.mocap_offset = np.zeros(2)
+        self.mocap_offset = np.zeros(4)
         self.DR = True
 
         super(CheolFingersEnv, self).__init__(
@@ -228,17 +223,18 @@ class CheolFingersEnv(robot_env.RobotEnv):
     def _set_action(self, action):
         action = action.copy()  # ensure that we don't change the action outside of this scope
         
-        pos_ctrl = action[:3].copy()
+        pos_ctrl = action[:4].copy()
         
         change_l = pos_ctrl[0]/50.0
         change_x = pos_ctrl[1]/50.0
         change_y = pos_ctrl[2]/50.0
+        change_th = pos_ctrl[3]/5.0
         
         stiffness_ctrl = 0.0
         stiffness_limit = 0.0
         
-        if action.shape[0] > 3:
-            stiffness_limit = 0.2 * self.max_stiffness * action[4]
+        if action.shape[0] > 4:
+            stiffness_limit = 0.2 * self.max_stiffness * action[5]
             
             self.prev_stiffness_limit += stiffness_limit
             self.prev_stiffness_limit = np.max([np.min([self.prev_stiffness_limit, self.max_stiffness]), self.min_stiffness])
@@ -257,31 +253,32 @@ class CheolFingersEnv(robot_env.RobotEnv):
             # self.sim.model.dof_damping[self.sim.model.joint_name2id('Joint_2_L')] = self.actual_max_friction2 * self.prev_stiffness_limit
             # self.sim.model.dof_damping[self.sim.model.joint_name2id('Joint_2_R')] = self.actual_max_friction2 * self.prev_stiffness_limit
             
-            stiffness_ctrl = 0.2 * self.max_stiffness * action[3]
+            stiffness_ctrl = 0.2 * self.max_stiffness * action[4]
             
             self.prev_stiffness += stiffness_ctrl
             self.prev_stiffness = np.max([np.min([self.prev_stiffness, self.prev_stiffness_limit]), 0.0])
             
             # print(self.prev_stiffness_limit)
             
-        self.des_p = self.des_p + np.array([[change_l],[change_x],[change_y]])
+        self.des_p = self.des_p + np.array([[change_l],[change_x],[change_y],[change_th]])
         self.des_p = np.clip(self.des_p, self.lower_limit, self.upper_limit)
         
         # calculating desired joint positions
-        r = np.array([[self.prev_stiffness],[self.max_stiffness],[self.max_stiffness]])
+        r = np.array([[self.prev_stiffness],[self.max_stiffness],[self.max_stiffness],[self.max_stiffness]])
         mocap_p = self.p + r * (self.des_p - self.p)
-        x_l = mocap_p[1,0] - 0.5*mocap_p[0,0]
-        y = mocap_p[2,0]
+        x_l = mocap_p[1,0] - 0.5*mocap_p[0,0]*np.cos(mocap_p[3,0])
+        y_l = mocap_p[2,0] - 0.5*mocap_p[0,0]*np.sin(mocap_p[3,0])
         # des_joint1_l = 2*np.arctan((2*L1*y - (L1**2*((- L1**2 + 2*L1*L2 - L2**2 + x_l**2 + y**2)*(L1**2 + 2*L1*L2 + L2**2 - x_l**2 - y**2))**(1/2))/(- L1**2 + 2*L1*L2 - L2**2 + x_l**2 + y**2) - (L2**2*((- L1**2 + 2*L1*L2 - L2**2 + x_l**2 + y**2)*(L1**2 + 2*L1*L2 + L2**2 - x_l**2 - y**2))**(1/2))/(- L1**2 + 2*L1*L2 - L2**2 + x_l**2 + y**2) + (x_l**2*((- L1**2 + 2*L1*L2 - L2**2 + x_l**2 + y**2)*(L1**2 + 2*L1*L2 + L2**2 - x_l**2 - y**2))**(1/2))/(- L1**2 + 2*L1*L2 - L2**2 + x_l**2 + y**2) + (y**2*((- L1**2 + 2*L1*L2 - L2**2 + x_l**2 + y**2)*(L1**2 + 2*L1*L2 + L2**2 - x_l**2 - y**2))**(1/2))/(- L1**2 + 2*L1*L2 - L2**2 + x_l**2 + y**2) + (2*L1*L2*((- L1**2 + 2*L1*L2 - L2**2 + x_l**2 + y**2)*(L1**2 + 2*L1*L2 + L2**2 - x_l**2 - y**2))**(1/2))/(- L1**2 + 2*L1*L2 - L2**2 + x_l**2 + y**2))/(L1**2 + 2*L1*x_l - L2**2 + x_l**2 + y**2)) - 3.*np.pi/4.
         # des_joint2_l = -2*np.arctan(((- L1**2 + 2*L1*L2 - L2**2 + x_l**2 + y**2)*(L1**2 + 2*L1*L2 + L2**2 - x_l**2 - y**2))**(1/2)/(- L1**2 + 2*L1*L2 - L2**2 + x_l**2 + y**2))
         
-        x_r = mocap_p[1,0] + 0.5*mocap_p[0,0]
+        x_r = mocap_p[1,0] + 0.5*mocap_p[0,0]*np.cos(mocap_p[3,0])
+        y_r = mocap_p[2,0] + 0.5*mocap_p[0,0]*np.sin(mocap_p[3,0])
         # des_joint1_r = 2*np.arctan((2*L1*y - (L1**2*((- L1**2 + 2*L1*L2 - L2**2 + x_r**2 + y**2)*(L1**2 + 2*L1*L2 + L2**2 - x_r**2 - y**2))**(1/2))/(- L1**2 + 2*L1*L2 - L2**2 + x_r**2 + y**2) - (L2**2*((- L1**2 + 2*L1*L2 - L2**2 + x_r**2 + y**2)*(L1**2 + 2*L1*L2 + L2**2 - x_r**2 - y**2))**(1/2))/(- L1**2 + 2*L1*L2 - L2**2 + x_r**2 + y**2) + (x_r**2*((- L1**2 + 2*L1*L2 - L2**2 + x_r**2 + y**2)*(L1**2 + 2*L1*L2 + L2**2 - x_r**2 - y**2))**(1/2))/(- L1**2 + 2*L1*L2 - L2**2 + x_r**2 + y**2) + (y**2*((- L1**2 + 2*L1*L2 - L2**2 + x_r**2 + y**2)*(L1**2 + 2*L1*L2 + L2**2 - x_r**2 - y**2))**(1/2))/(- L1**2 + 2*L1*L2 - L2**2 + x_r**2 + y**2) + (2*L1*L2*((- L1**2 + 2*L1*L2 - L2**2 + x_r**2 + y**2)*(L1**2 + 2*L1*L2 + L2**2 - x_r**2 - y**2))**(1/2))/(- L1**2 + 2*L1*L2 - L2**2 + x_r**2 + y**2))/(L1**2 + 2*L1*x_r - L2**2 + x_r**2 + y**2)) - 1.*np.pi/4.
         # des_joint2_r = 2*np.arctan(((- L1**2 + 2*L1*L2 - L2**2 + x_r**2 + y**2)*(L1**2 + 2*L1*L2 + L2**2 - x_r**2 - y**2))**(1/2)/(- L1**2 + 2*L1*L2 - L2**2 + x_r**2 + y**2))
         
         # welding the bodies to the mocap
-        new_pose_l = np.array([-y + 0.1, x_l - 0.0625 + self.mocap_offset[0]])
-        new_pose_r = np.array([-y + 0.1, x_r - 0.0625 + self.mocap_offset[1]])
+        new_pose_l = np.array([-y_l + 0.1 + self.mocap_offset[0], x_l - 0.0625 + self.mocap_offset[1]])
+        new_pose_r = np.array([-y_r + 0.1 + self.mocap_offset[2], x_r - 0.0625 + self.mocap_offset[3]])
         new_pose = np.array([new_pose_l, new_pose_r])
         
         for eq_type, obj1_id, obj2_id in zip(self.sim.model.eq_type,
@@ -303,15 +300,14 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.sim.data.mocap_pos[:,:2] = new_pose
         
         Jp = np.matrix([[-self.Prel[0]/self.p[0,0], -self.Prel[1]/self.p[0,0], self.Prel[0]/self.p[0,0], self.Prel[1]/self.p[0,0]],
+                          [self.Prel[1]/self.p[0,0]/self.p[0,0], -self.Prel[0]/self.p[0,0]/self.p[0,0], -self.Prel[1]/self.p[0,0]/self.p[0,0], self.Prel[0]/self.p[0,0]/self.p[0,0]],
                           [0.5, 0, 0.5, 0],
                           [0, 0.5, 0, 0.5]])
-        a, b = Jp[0,2], Jp[0,3]
-        c = a**2 + b**2
-        Jp_inv = np.matrix([[-0.5*a/c, 1, 0],
-                            [-0.5*b/c, 0, 1],
-                            [0.5*a/c, 1, 0],
-                            [0.5*b/c, 0, 1],])
-        
+        Jp_det = (Jp[0,0]*Jp[1,1] - Jp[0,1]*Jp[1,0] - Jp[0,0]*Jp[1,3] + Jp[0,1]*Jp[1,2] - Jp[0,2]*Jp[1,1] + Jp[0,3]*Jp[1,0] + Jp[0,2]*Jp[1,3] - Jp[0,3]*Jp[1,2]);
+        Jp_inv = np.matrix([[Jp[1,1] - Jp[1,3], Jp[0,3] - Jp[0,1], 2*Jp[0,1]*Jp[1,2] - 2*Jp[0,2]*Jp[1,1] + 2*Jp[0,2]*Jp[1,3] - 2*Jp[0,3]*Jp[1,2], 2*Jp[0,1]*Jp[1,3] - 2*Jp[0,3]*Jp[1,1]], 
+                            [Jp[1,2] - Jp[1,0], Jp[0,0] - Jp[0,2], 2*Jp[0,2]*Jp[1,0] - 2*Jp[0,0]*Jp[1,2], 2*Jp[0,3]*Jp[1,0] - 2*Jp[0,0]*Jp[1,3] + 2*Jp[0,2]*Jp[1,3] - 2*Jp[0,3]*Jp[1,2]],
+                            [Jp[1,3] - Jp[1,1], Jp[0,1] - Jp[0,3], 2*Jp[0,0]*Jp[1,1] - 2*Jp[0,1]*Jp[1,0] - 2*Jp[0,0]*Jp[1,3] + 2*Jp[0,3]*Jp[1,0], 2*Jp[0,3]*Jp[1,1] - 2*Jp[0,1]*Jp[1,3]],
+                            [Jp[1,0] - Jp[1,2], Jp[0,2] - Jp[0,0], 2*Jp[0,0]*Jp[1,2] - 2*Jp[0,2]*Jp[1,0], 2*Jp[0,0]*Jp[1,1] - 2*Jp[0,1]*Jp[1,0] + 2*Jp[0,1]*Jp[1,2] - 2*Jp[0,2]*Jp[1,1]]])/Jp_det
         J = np.matrix([[-self.P_L[1], -L2 * np.sin(self.Lj[0,0]+self.Lj[1,0] + 3*np.pi/4.0), 0, 0], 
                          [self.P_L[0], L2 * np.cos(self.Lj[0,0]+self.Lj[1,0] + 3*np.pi/4.0), 0, 0],
                          [0, 0, -self.P_R[1], -L2 * np.sin(self.Rj[0,0]-self.Rj[1,0] + np.pi/4.0)], 
@@ -338,7 +334,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
         # task space stiffness
         max_kp = np.transpose(Jp_inv) * max_k * Jp_inv
         
-        max_kp_diag = np.matrix([[max_kp[0,0], 0, 0], [0, max_kp[1,1], 0], [0, 0, max_kp[2,2]]])
+        max_kp_diag = np.matrix([[max_kp[0,0], 0, 0, 0], [0, max_kp[1,1], 0, 0], [0, 0, max_kp[2,2], 0], [0, 0, 0, max_kp[3,3]]])
         max_kj_diag = np.matrix([[max_kj_L[0,0], 0, 0, 0], [0, max_kj_L[1,1], 0, 0], [0, 0, max_kj_R[0,0], 0], [0, 0, 0, max_kj_R[1,1]]])
         
         # desired task space force
@@ -346,6 +342,14 @@ class CheolFingersEnv(robot_env.RobotEnv):
         
         # desired Cartesian space force
         des_F = np.transpose(Jp) * self.des_Fp
+        # if action[0]*1e6 == (self.update_step-2): 
+        #     self.update_bool = True
+        # elif np.linalg.norm(action) > self.update_threshold:
+        #     self.max_grasping_force = 0.0
+        #     self.max_ext_torques_L = 0.0
+        #     self.max_ext_torques_R = 0.0
+        #     self.max_vel_L = 0.0
+        #     self.max_vel_R = 0.0
             
         # desired joint space torque
         self.des_tau = np.transpose(J) * des_F
@@ -399,7 +403,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
         
         self.Prel = self.P_R - self.P_L + np.array([0.125, 0])
         l = np.sqrt(self.Prel[0]*self.Prel[0] + self.Prel[1]*self.Prel[1])
-        self.p = np.array([[l],[(xR+xL+0.125)/2],[(yR+yL)/2]])
+        self.p = np.array([[l],[(xR+xL+0.125)/2],[(yR+yL)/2],[np.arctan2(yR-yL,xR+0.125-xL)]])
         self.vel_p = self.p - self.Prev_p
         
         self.Prev_Rj = self.Rj
@@ -409,14 +413,16 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.prev_force = self.prev_force + (self.des_Fp[0,0] - self.prev_force) * dt / 0.5
         self.prev_lforce = self.prev_lforce + (self.sim.data.sensordata[self.sim.model.sensor_name2id('fingertip_l')] - self.prev_lforce) * dt / 0.5
         self.prev_rforce = self.prev_rforce + (self.sim.data.sensordata[self.sim.model.sensor_name2id('fingertip_r')] - self.prev_rforce) * dt / 0.5
+        # self.prev_oforce = self.prev_oforce + (self.sim.data.sensordata[self.sim.model.sensor_name2id('object_frc')] - self.prev_oforce) * dt / 0.5
             
-        self.sim.model.body_quat[self.sim.model.body_name2id('debug_body')] = ToQuaternion(0, -np.pi/2.0, np.pi/2.0)
+        self.sim.model.body_quat[self.sim.model.body_name2id('debug_body')] = ToQuaternion(0, -np.pi/2.0, self.p[3,0] + np.pi/2.0)
         self.sim.model.body_pos[self.sim.model.body_name2id('debug_body'),0:2] = np.array([-self.p[2,0] + 0.1, self.p[1,0] - 0.0625])
         self.sim.model.site_size[self.sim.model.site_name2id('debug'),1] = self.p[0,0]/2.0
         
         object_pos = self.sim.data.get_body_xpos('object2').copy()
         object_pos_frame = np.array([[object_pos[1]+0.0625], [-(object_pos[0]-0.1)], [object_pos[2]]])
-        self.est_obj_pose = object_pos_frame + np.concatenate(((np.random.random(2)-0.5)*0.01,[0.])).reshape(-1,1) if self.DR and np.linalg.norm(object_pos_frame - self.goal[:3]) > 0.02 else object_pos_frame
+        # self.est_obj_pose = object_pos_frame + np.concatenate(((np.random.random(2)-0.5)*0.02,[0.])).reshape(-1,1) if self.DR and np.linalg.norm(object_pos_frame - self.goal[:3]) > 0.02 else object_pos_frame
+        self.est_obj_pose = object_pos_frame
         
         self.prev_oforce = self.sim.data.sensordata[self.sim.model.sensor_name2id('object_frc')] if self.actual_stiffness == self.actual_max_stiffness else self.prev_stiffness_limit * self.sim.data.sensordata[self.sim.model.sensor_name2id('object_frc')]
         object_ori = ToRPY(self.sim.data.get_joint_qpos('object:joint')[3:].copy())[1]
@@ -424,16 +430,16 @@ class CheolFingersEnv(robot_env.RobotEnv):
         
         if self.p[0,0] > 0.025 and self.prev_oforce > self.min_grip/2. and self.prev_lforce > 0.0 and self.prev_rforce > 0.0:
              self.sim.model.geom_size[self.sim.model.geom_name2id('object_bottom'),2] = 0.045
-             if self.DR and np.linalg.norm(object_pos_frame - self.goal[:3]) > 0.02: self.sim.data.qvel[self.sim.model.joint_name2id('object:joint')+1] += 0.5*(np.random.random()-0.5)
+             if self.DR and np.linalg.norm(object_pos_frame - self.goal[:3]) > 0.02: self.sim.data.qvel[self.sim.model.joint_name2id('object:joint')+1] += 0.1*(np.random.random()-0.5)
         else:
              self.sim.model.geom_size[self.sim.model.geom_name2id('object_bottom'),2] = 0.05
             
         if self.prev_oforce > self.object_fragility:
             self.sim.model.geom_rgba[-1][0:3] = np.array([0.8000, 0.2627, 0.2824])
             
-        if self.n_actions == 5:
-            observation = np.array([self.p[0,0], self.p[1,0], self.p[2,0], # l, theta, cen_x, cen_y
-                                    self.des_p[0,0]-self.p[0,0], self.des_p[1,0]-self.p[1,0], self.des_p[2,0]-self.p[2,0], #intention
+        if self.n_actions == 6:
+            observation = np.array([self.p[0,0], self.p[1,0], self.p[2,0], self.p[3,0], # l, cen_x, cen_y, theta
+                                    self.des_p[0,0]-self.p[0,0], self.des_p[1,0]-self.p[1,0], self.des_p[2,0]-self.p[2,0], self.des_p[3,0]-self.p[3,0],#intention
                                     self.goal[0]-self.est_obj_pose[0,0], self.goal[1]-self.est_obj_pose[1,0],
                                     self.est_obj_pose[0,0]-self.p[1,0], self.est_obj_pose[1,0]-self.p[2,0],
                                     self.prev_force,
@@ -441,8 +447,8 @@ class CheolFingersEnv(robot_env.RobotEnv):
                                     self.prev_stiffness, self.prev_stiffness_limit
                                     ])
         else:
-            observation = np.array([self.p[0,0], self.p[1,0], self.p[2,0],  # l, theta, cen_x, cen_y
-                                    self.des_p[0,0]-self.p[0,0], self.des_p[1,0]-self.p[1,0], self.des_p[2,0]-self.p[2,0], #intention
+            observation = np.array([self.p[0,0], self.p[1,0], self.p[2,0], self.p[3,0], # l, cen_x, cen_y, theta
+                                    self.des_p[0,0]-self.p[0,0], self.des_p[1,0]-self.p[1,0], self.des_p[2,0]-self.p[2,0], self.des_p[3,0]-self.p[3,0],#intention
                                     self.goal[0]-self.est_obj_pose[0,0], self.goal[1]-self.est_obj_pose[1,0],
                                     self.est_obj_pose[0,0]-self.p[1,0], self.est_obj_pose[1,0]-self.p[2,0],
                                     self.prev_force,
@@ -451,7 +457,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
         
         modified_obs = dict(observation=observation, 
                             achieved_goal=np.array([object_pos_frame[0,0], object_pos_frame[1,0], object_pos_frame[2,0], 0.5 * object_ori, # 0.5 for NoDR
-                                                    self.prev_oforce, 0.5 * object_ori, self.obj_acc, 
+                                                    self.prev_oforce, self.obj_acc, 
                                                     self.vel_L[0,0,0], self.vel_L[1,0,0], self.vel_R[0,0,0], self.vel_R[1,0,0]]), 
                             desired_goal = self.goal)
         return modified_obs
@@ -484,9 +490,9 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.P_L = np.array([L1 * np.cos(self.Lj[0,0] + 3*np.pi/4.0) + L2 * np.cos(self.Lj[0,0]+self.Lj[1,0] + 3*np.pi/4.0), L1 * np.sin(self.Lj[0,0] + 3*np.pi/4.0) + L2 * np.sin(self.Lj[0,0]+self.Lj[1,0] + 3*np.pi/4.0)])
         
         self.Prel = self.P_R - self.P_L + np.array([0.125, 0])
-        self.p = np.array([[0.16],[0.0625],[0.1]])
-        self.des_p = np.array([[0.16],[0.0625],[0.1]])
-        self.des_Fp = np.array([[0.],[0.],[0.]])
+        self.p = np.array([[0.16],[0.0625],[0.1],[0.]])
+        self.des_p = np.array([[0.16],[0.0625],[0.1],[0.]])
+        self.des_Fp = np.array([[0.],[0.],[0.],[0.]])
         # print(self.p)
         
         self.Prev_p = self.p.copy()
@@ -495,7 +501,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
         
         self.joint_pos = np.concatenate([self.Lj, self.Rj])
         self.joint_pos[3,0] = -self.joint_pos[3,0]
-        self.est_obj_pose = np.zeros([3,1])
+        self.est_obj_pose = np.zeros([2,1])
         
         # reset stiffness
         self.prev_stiffness = 0.8
@@ -539,21 +545,18 @@ class CheolFingersEnv(robot_env.RobotEnv):
         return True
 
     def _sample_goal(self):
-        goal = np.array([np.random.random_sample()*0.05+0.05, np.random.random_sample()*0.03+0.06, 0.06, 0.0, 0.0,0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        goal = np.array([np.random.random_sample()*0.08+0.02, np.random.random_sample()*0.06+0.09, 0.06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         
         initial_qpos = self.sim.data.get_joint_qpos('object:joint').copy()
         initial_pos, initial_quat = initial_qpos[:3], initial_qpos[3:]
-        obj_location = np.array([np.random.random_sample()*0.05+0.0, np.random.random_sample()*0.03+0.12])
-        while(abs(obj_location[1] - goal[1]) < 0.05 and abs(obj_location[0] - goal[0]) < 0.05):
-            obj_location = np.array([np.random.random_sample()*0.05+0.0, np.random.random_sample()*0.03+0.12])
+        obj_location = np.array([np.random.random_sample()*0.08+0.02, np.random.random_sample()*0.06+0.09])
+        while(abs(obj_location[0] - goal[0]) < 0.03 or abs(obj_location[1] - goal[1]) < 0.03):
+            obj_location = np.array([np.random.random_sample()*0.08+0.02, np.random.random_sample()*0.06+0.09])
         initial_pos[:2] = np.array([-obj_location[1] + 0.1, obj_location[0] - 0.0625])
-        # initial_quat = ToQuaternion(np.random.random_sample()*np.pi/4-np.pi/8, 0, 0)
-        initial_qpos[:3] = initial_pos
-        # initial_qpos[3:] = initial_quat
         
         self.sim.data.set_joint_qpos('object:joint', initial_qpos)
         
-        if self.DR: self.mocap_offset = (np.random.random(2)-0.5) * 0.01 # domain randomization
+        if self.DR: self.mocap_offset = (np.random.random(4)-0.5) * 0.01 # domain randomization
         
         return goal
 

@@ -8,7 +8,7 @@ MODEL_XML_PATH = os.path.join('NullFingers', 'NullFingersEnv_liquid.xml')
 
 
 class CheolFingersLiquidEnv(CheolFingers_env_liquid.CheolFingersEnv, utils.EzPickle):
-    def __init__(self, reward_type='sparse', pert_type='none', n_actions=3, eval_env=False):
+    def __init__(self, reward_type='sparse', pert_type='none', n_actions=4, eval_env=False):
         initial_qpos = {
                 'Joint_1_L' : 0.14,
                 'Joint_2_L' : -1.93,

@@ -135,10 +135,10 @@ from baselines import run
 
 defaultargs = ['--alg=her','--env=CheolFingersLiquid-v1', '--num_timesteps=0', '--play']
 if __name__ == '__main__':
-    for dim in [5]:
+    for dim in [6]:
         for seed in [10]:
             for pert in ['none']:
-                loadpath = '--load_path=./PASCAPE/models/Liquid/Scratch_DR/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
+                loadpath = '--load_path=./PASCAPE/models/Liquid/PASCAPE_DR/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
                 perturb = '--perturb={}'.format(pert)
                 algdim = '--algdim={}'.format(dim)
                 eval_env = '--eval_env=True'

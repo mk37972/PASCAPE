@@ -182,7 +182,7 @@ class RolloutWorker:
             elif self.venv.envs[0].env.spec.id == 'CheolFingersManipulate-v1':
                 success2 = (np.float32(self.venv.envs[0].env.prev_force).mean() > -0.02)
             elif self.venv.envs[0].env.spec.id == 'CheolFingersLiquid-v1':
-                success2 = (np.float32(self.venv.envs[0].env.prev_oforce).mean() < self.venv.envs[0].env.object_fragility) and (np.float32(self.venv.envs[0].env.obj_acc).mean() < 1000.)
+                success2 = (np.float32(self.venv.envs[0].env.prev_oforce).mean() < self.venv.envs[0].env.object_fragility) and (np.float32(self.venv.envs[0].env.obj_acc).mean() < 500.)
             
             if any(done):
                 # here we assume all environments are done is ~same number of steps, so we terminate rollouts whenever any of the envs returns done
