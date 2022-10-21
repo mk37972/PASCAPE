@@ -141,10 +141,10 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.reward_type = reward_type
         self.broken_table = False
         self.broken_object = False
-        self.max_stiffness = 0.8
-        self.min_stiffness = 0.2
-        self.prev_stiffness = 0.8
-        self.prev_stiffness_limit = 0.8
+        self.max_stiffness = 0.2
+        self.min_stiffness = 0.1
+        self.prev_stiffness = 0.2
+        self.prev_stiffness_limit = 0.2
         self.actual_max_stiffness = 2.30399e-2
         self.actual_max_stiffness2 = 1.15199e-2
         self.actual_stiffness = self.actual_max_stiffness
@@ -211,7 +211,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
             vel_rew = np.linalg.norm((achieved_goal[self.est_dim+self.force_dim:self.est_dim+self.force_dim+self.vel_dim] - goal[self.est_dim+self.force_dim:self.est_dim+self.force_dim+self.vel_dim]), axis=-1)
             # flag_rew = np.linalg.norm((achieved_goal[self.est_dim+self.force_dim+self.vel_dim:self.est_dim+self.force_dim+self.vel_dim+self.flag_dim] - goal[self.est_dim+self.force_dim+self.vel_dim:self.est_dim+self.force_dim+self.vel_dim+self.flag_dim]), axis=-1)
         # force reward = 2e-3 without DR 2e-5 with DR 
-        return -(est_dist > self.distance_threshold).astype(np.float32) - 2e-3*force_rew - 1e-1*vel_rew #- 1.*flag_rew
+        return -(est_dist > self.distance_threshold).astype(np.float32) - 3e-3*force_rew - 1e-1*vel_rew #- 1.*flag_rew
         
 
     # RobotEnv methods
@@ -238,20 +238,8 @@ class CheolFingersEnv(robot_env.RobotEnv):
             
             self.prev_stiffness_limit += stiffness_limit
             self.prev_stiffness_limit = np.max([np.min([self.prev_stiffness_limit, self.max_stiffness]), self.min_stiffness])
-            self.actual_stiffness = self.actual_max_stiffness * self.prev_stiffness_limit
-            self.actual_stiffness2 = self.actual_max_stiffness2 * self.prev_stiffness_limit
-            # self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ1_R'), 0] = self.actual_max_stiffness * self.prev_stiffness_limit 
-            # self.sim.model.actuator_biasprm[self.sim.model.actuator_name2id('AJ1_R'), 1] = -self.actual_max_stiffness * self.prev_stiffness_limit 
-            # self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ2_R'), 0] = self.actual_max_stiffness2 * self.prev_stiffness_limit 
-            # self.sim.model.actuator_biasprm[self.sim.model.actuator_name2id('AJ2_R'), 1] = -self.actual_max_stiffness2 * self.prev_stiffness_limit 
-            # self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ1_L'), 0] = self.actual_max_stiffness * self.prev_stiffness_limit 
-            # self.sim.model.actuator_biasprm[self.sim.model.actuator_name2id('AJ1_L'), 1] = -self.actual_max_stiffness * self.prev_stiffness_limit 
-            # self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ2_L'), 0] = self.actual_max_stiffness2 * self.prev_stiffness_limit 
-            # self.sim.model.actuator_biasprm[self.sim.model.actuator_name2id('AJ2_L'), 1] = -self.actual_max_stiffness2 * self.prev_stiffness_limit 
-            # self.sim.model.dof_damping[self.sim.model.joint_name2id('Joint_1_L')] = self.actual_max_friction * self.prev_stiffness_limit
-            # self.sim.model.dof_damping[self.sim.model.joint_name2id('Joint_1_R')] = self.actual_max_friction * self.prev_stiffness_limit
-            # self.sim.model.dof_damping[self.sim.model.joint_name2id('Joint_2_L')] = self.actual_max_friction2 * self.prev_stiffness_limit
-            # self.sim.model.dof_damping[self.sim.model.joint_name2id('Joint_2_R')] = self.actual_max_friction2 * self.prev_stiffness_limit
+            # self.actual_stiffness = self.actual_max_stiffness * self.prev_stiffness_limit
+            # self.actual_stiffness2 = self.actual_max_stiffness2 * self.prev_stiffness_limit
             
             stiffness_ctrl = 0.2 * self.max_stiffness * action[4]
             
@@ -259,7 +247,9 @@ class CheolFingersEnv(robot_env.RobotEnv):
             self.prev_stiffness = np.max([np.min([self.prev_stiffness, self.prev_stiffness_limit]), 0.0])
             
             # print(self.prev_stiffness_limit)
-            
+        
+        # prob = 0.1/self.prev_stiffness_limit
+        # if np.random.random() > prob:
         self.des_p = self.des_p + np.array([[change_l],[change_x],[change_y],[change_th]])
         self.des_p = np.clip(self.des_p, self.lower_limit, self.upper_limit)
         
@@ -342,35 +332,12 @@ class CheolFingersEnv(robot_env.RobotEnv):
         
         # desired Cartesian space force
         des_F = np.transpose(Jp) * self.des_Fp
-        # if action[0]*1e6 == (self.update_step-2): 
-        #     self.update_bool = True
-        # elif np.linalg.norm(action) > self.update_threshold:
-        #     self.max_grasping_force = 0.0
-        #     self.max_ext_torques_L = 0.0
-        #     self.max_ext_torques_R = 0.0
-        #     self.max_vel_L = 0.0
-        #     self.max_vel_R = 0.0
             
         # desired joint space torque
         self.des_tau = np.transpose(J) * des_F
         
         self.des_mL = ((np.matrix([[1/Ksc_L[0,0], 0],[0, 1/Ksc_L[1,1]]]) * np.transpose(R_j_inv_L)*self.des_tau[0:2]) + R_j_L * self.joint_pos[0:2]) / Rm
         self.des_mR = ((np.matrix([[1/Ksc[0,0], 0],[0, 1/Ksc[1,1]]]) * np.transpose(R_j_inv)*self.des_tau[2:4]) + R_j * self.joint_pos[2:4]) / Rm 
-        
-        # prob = 0.005 if self.pert_type == 'delay' else -0.1
-        # if np.random.random() > prob:
-        #     self.sim.data.ctrl[0] = self.des_mL[0,0]
-        #     self.sim.data.ctrl[1] = self.des_mL[1,0]
-        #     self.sim.data.ctrl[2] = self.des_mR[0,0]
-        #     self.sim.data.ctrl[3] = self.des_mR[1,0]
-        #     self.previous_input = self.sim.data.ctrl
-        # else:
-        #     try: self.sim.data.ctrl = self.previous_input
-        #     except: 
-        #         self.sim.data.ctrl[0] = 0.14097741
-        #         self.sim.data.ctrl[1] = -1.79383202
-        #         self.sim.data.ctrl[2] = -0.14176121
-        #         self.sim.data.ctrl[3] = -1.79471042
                 
                    
 
@@ -439,7 +406,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
             
         if self.n_actions == 6:
             observation = np.array([self.p[0,0], self.p[1,0], self.p[2,0], self.p[3,0], # l, cen_x, cen_y, theta
-                                    self.des_p[0,0]-self.p[0,0], self.des_p[1,0]-self.p[1,0], self.des_p[2,0]-self.p[2,0], self.des_p[3,0]-self.p[3,0],#intention
+                                    # self.des_p[0,0]-self.p[0,0], self.des_p[1,0]-self.p[1,0], self.des_p[2,0]-self.p[2,0], self.des_p[3,0]-self.p[3,0],#intention
                                     self.goal[0]-self.est_obj_pose[0,0], self.goal[1]-self.est_obj_pose[1,0],
                                     self.est_obj_pose[0,0]-self.p[1,0], self.est_obj_pose[1,0]-self.p[2,0],
                                     self.prev_force,
@@ -448,7 +415,7 @@ class CheolFingersEnv(robot_env.RobotEnv):
                                     ])
         else:
             observation = np.array([self.p[0,0], self.p[1,0], self.p[2,0], self.p[3,0], # l, cen_x, cen_y, theta
-                                    self.des_p[0,0]-self.p[0,0], self.des_p[1,0]-self.p[1,0], self.des_p[2,0]-self.p[2,0], self.des_p[3,0]-self.p[3,0],#intention
+                                    # self.des_p[0,0]-self.p[0,0], self.des_p[1,0]-self.p[1,0], self.des_p[2,0]-self.p[2,0], self.des_p[3,0]-self.p[3,0],#intention
                                     self.goal[0]-self.est_obj_pose[0,0], self.goal[1]-self.est_obj_pose[1,0],
                                     self.est_obj_pose[0,0]-self.p[1,0], self.est_obj_pose[1,0]-self.p[2,0],
                                     self.prev_force,
@@ -504,8 +471,8 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.est_obj_pose = np.zeros([2,1])
         
         # reset stiffness
-        self.prev_stiffness = 0.8
-        self.prev_stiffness_limit = 0.8
+        self.prev_stiffness = 0.2
+        self.prev_stiffness_limit = 0.2
         self.actual_stiffness = self.actual_max_stiffness
         self.actual_stiffness2 = self.actual_max_stiffness2
         # self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ1_R'), 0] = self.actual_max_stiffness * self.prev_stiffness_limit 

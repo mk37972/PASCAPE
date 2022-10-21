@@ -140,10 +140,10 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.reward_type = reward_type
         self.broken_table = False
         self.broken_object = False
-        self.max_stiffness = 0.8
+        self.max_stiffness = 0.2
         self.min_stiffness = 0.1
-        self.prev_stiffness = 0.8
-        self.prev_stiffness_limit = 0.8
+        self.prev_stiffness = 0.2
+        self.prev_stiffness_limit = 0.2
         self.actual_max_stiffness = 2.30399e-2
         self.actual_max_stiffness2 = 1.15199e-2
         self.actual_stiffness = self.actual_max_stiffness
@@ -234,8 +234,8 @@ class CheolFingersEnv(robot_env.RobotEnv):
             
             self.prev_stiffness_limit += stiffness_limit
             self.prev_stiffness_limit = np.max([np.min([self.prev_stiffness_limit, self.max_stiffness]), self.min_stiffness])
-            self.actual_stiffness = self.actual_max_stiffness * self.prev_stiffness_limit
-            self.actual_stiffness2 = self.actual_max_stiffness2 * self.prev_stiffness_limit
+            # self.actual_stiffness = self.actual_max_stiffness * self.prev_stiffness_limit
+            # self.actual_stiffness2 = self.actual_max_stiffness2 * self.prev_stiffness_limit
             
             stiffness_ctrl = 0.5 * self.max_stiffness * action[1]
             
@@ -420,8 +420,8 @@ class CheolFingersEnv(robot_env.RobotEnv):
         self.des_tau = np.array([[0.],[0.]])
         
         # reset stiffness
-        self.prev_stiffness = 0.8
-        self.prev_stiffness_limit = 0.8
+        self.prev_stiffness = 0.2
+        self.prev_stiffness_limit = 0.2
         self.actual_stiffness = self.actual_max_stiffness
         self.actual_stiffness2 = self.actual_max_stiffness2
         # self.sim.model.actuator_gainprm[self.sim.model.actuator_name2id('AJ1_R'), 0] = self.actual_max_stiffness * self.prev_stiffness_limit 

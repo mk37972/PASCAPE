@@ -105,7 +105,7 @@ while ep < num_ep:
 
 if render != 1: 
     for i in [4,6]:
-        fileName = "ToolManipulationDRDemo"
+        fileName = "ToolManipulationDRDemo_new"
         if i == 4:
             fileName += "_{}D".format(i)
         if i == 6:

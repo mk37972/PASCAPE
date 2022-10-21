@@ -118,31 +118,31 @@ from baselines import run
                 
 #                 run.main(finalargs)
                 
-# defaultargs = ['--alg=her','--env=CheolFingersSearch-v1', '--num_timesteps=0', '--play']
-# if __name__ == '__main__':
-#     for dim in [3]:
-#         for seed in [10]:
-#             for pert in ['none']:
-#                 loadpath = '--load_path=./PASCAPE/models/Dark/Search/PASCAPE_DR/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
-#                 perturb = '--perturb={}'.format(pert)
-#                 algdim = '--algdim={}'.format(dim)
-#                 eval_env = '--eval_env=False'
-                
-#                 finalargs = defaultargs + [loadpath, perturb, algdim, eval_env]
-                
-#                 run.main(finalargs)
-
-
-defaultargs = ['--alg=her','--env=CheolFingersLiquid-v1', '--num_timesteps=0', '--play']
+defaultargs = ['--alg=her','--env=CheolFingersSearch-v1', '--num_timesteps=0', '--play']
 if __name__ == '__main__':
-    for dim in [6]:
+    for dim in [3]:
         for seed in [10]:
             for pert in ['none']:
-                loadpath = '--load_path=./PASCAPE/models/Liquid/PASCAPE_DR/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
+                loadpath = '--load_path=./PASCAPE/models/Dark/Search/SCAPES_Weak_Test/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
                 perturb = '--perturb={}'.format(pert)
                 algdim = '--algdim={}'.format(dim)
-                eval_env = '--eval_env=True'
+                eval_env = '--eval_env=False'
                 
                 finalargs = defaultargs + [loadpath, perturb, algdim, eval_env]
                 
                 run.main(finalargs)
+
+
+# defaultargs = ['--alg=her','--env=CheolFingersLiquid-v1', '--num_timesteps=0', '--play']
+# if __name__ == '__main__':
+#     for dim in [6]:
+#         for seed in [1000]:
+#             for pert in ['none']:
+#                 loadpath = '--load_path=./PASCAPE/models/Liquid/SCAPE_Weak_test/Sim_NuFingers_bad{}dim_{}'.format(dim,seed)
+#                 perturb = '--perturb={}'.format(pert)
+#                 algdim = '--algdim={}'.format(dim)
+#                 eval_env = '--eval_env=True'
+                
+#                 finalargs = defaultargs + [loadpath, perturb, algdim, eval_env]
+                
+#                 run.main(finalargs)
